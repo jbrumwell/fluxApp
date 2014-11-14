@@ -142,9 +142,9 @@ describe('store', function() {
         onUserLogin: 'user.login'
       },
 
-      onUserLogin: function(response) {
-        expect(response.actionType).to.equal(fluxApp.getActionType('user.login'));
-        expect(response.payload.success).to.equal(true);
+      onUserLogin: function(result, actionType) {
+        expect(actionType).to.equal(fluxApp.getActionType('user.login'));
+        expect(result.success).to.equal(true);
         fluxApp._actions = {};
         fluxApp.dispatcher.$Dispatcher_callbacks = {};
         done();
