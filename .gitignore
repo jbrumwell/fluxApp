@@ -1,0 +1,29 @@
+# Default list of files to ignore
+.DS_Store
+
+# Logs
+logs/
+npm-debug.log
+
+# Node stuff
+node_modules/
+
+# Build dir
+build/
+
+# Cache
+.haste_cache/
+
+# Runtime data
+pids
+*.pid
+*.seed
+
+# Used by vagrant
+.vagrant
+
+# VIM temp files
+.*.sw*
+
+
+bower_components
