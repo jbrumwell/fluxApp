@@ -8,7 +8,7 @@ Stores can bind to the actions they listen too, using a method: actiontype names
 a `getInitialState` method. Calling the stores `setState` automatically emits the changed event
 
 ```
-  var fluxApp = require('fluxApp');
+  var fluxApp = require('fluxapp');
 
   fluxApp.createStore('namespace', {
     getInitialState: function getInitialState() {
@@ -38,7 +38,7 @@ when the promise resolves.
 If a failure is thrown, a failed event is emitted async/sync depending on the state of the promise
 
 ```
-  var fluxApp = require('fluxApp');
+  var fluxApp = require('fluxapp');
 
   fluxApp.createActions('namespace', {
     sync: function() {
@@ -91,7 +91,7 @@ React.createClass({
 
   flux: {
     route: {
-      path: '/path/to/component'    
+      path: '/path/to/component'
     },
 
     stores: {
@@ -135,7 +135,7 @@ to populate the stores.
 
 ```
 function handler(req, reply) {
-    var fluxApp = require('fluxApp');
+    var fluxApp = require('fluxapp');
     var componentClass = fluxApp.matchRoute(req.path, {
       method: req.method
     });
@@ -157,7 +157,7 @@ function handler(req, reply) {
 
 ```
 $(function() {
-  var fluxApp = require('fluxApp');
+  var fluxApp = require('fluxapp');
   var component = fluxApp.matchRoute(window.location.pathname, {
     method: statePassedFromServer.method
   });
