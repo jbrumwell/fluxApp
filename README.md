@@ -90,6 +90,10 @@ React.createClass({
   }
 
   flux: {
+    route: {
+      path: '/path/to/component'    
+    },
+
     stores: {
       onTestUpdate: 'test'
     },
