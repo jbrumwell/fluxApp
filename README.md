@@ -4,6 +4,9 @@ This module is an effort to ease the development of flux, http://www.github.com/
 
 ### Stores
 
+Stores can bind to the actions they listen too, using a method: actiontype namespaced string, we also provide
+a `getInitialState` method. Calling the stores `setState` automatically emits the changed event
+
 ```
   var fluxApp = require('fluxApp');
 
@@ -21,7 +24,7 @@ This module is an effort to ease the development of flux, http://www.github.com/
     onUserLogin: function(result, actionType) {
       // process data from the user.login event
     }
-  })
+  });
 ```
 
 ### Actions
@@ -86,13 +89,15 @@ React.createClass({
     }
   }
 
-  stores: {
-    onTestUpdate: 'test'
-  },
+  flux: {
+    stores: {
+      onTestUpdate: 'test'
+    },
 
-  actions: {
-    onTestMethodBefore: 'test.method:before'
-  },
+    actions: {
+      onTestMethodBefore: 'test.method:before'
+    }
+  }
 
   onTestMethodBefore: function() {
     // fired before test.method event, if the event is async  
@@ -120,21 +125,47 @@ React.createClass({
 
 #### Server side
 
+One approach to creating an isomorphic appliction is the following, here we load the component that we
+have determined is required for this route. Exposed a static load method that invokes the actions needed
+to populate the stores.
+
 ```
 function handler(req, reply) {
-    var Component = react.createFactory(require(./client/component'));
+    var fluxApp = require('fluxApp');
+    var componentClass = fluxApp.matchRoute(req.path, {
+      method: req.method
+    });
+    var Component = react.createFactory(componentClass);
+    var data = normalizeRequestData(req);
 
-    component.load(req).then(function(state) {
-      reply(react.renderToString(Component()));                        
+    componentClass.load(data).then(function() {
+      var componentHtml = react.renderToString(Component());
+      var state = {
+          method: req.method,
+          payload: fluxApp.dehydrate()
+      };
+
+      // .. Inject componentHtml and state json into your layout ..
     });
 ```
 
 #### Client side
 
 ```
-require('./stores'); //initialize the stores
+$(function() {
+  var fluxApp = require('fluxApp');
+  var component = fluxApp.matchRoute(window.location.pathname, {
+    method: statePassedFromServer.method
+  });
 
-var fluxApp = require('fluxApp');
+  fluxApp.rehydrate(statePassedFromServer.payload);
 
-fluxApp.rehydrate(statePassedFromServer);
+  ... bind component to node on page representing the component ...
+});
 ```
+
+### Helper methods
+
+`fluxApp.getDispatcher`: return an instance of the flux dispatcher
+`fluxApp.getRouter`: return an instance of the router
+`fluxApp.getActionType(string)` converts namespaced strings ie: user.login:after to constants USER_LOGIN_AFTER

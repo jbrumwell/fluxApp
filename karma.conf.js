@@ -63,6 +63,9 @@ module.exports = function(config) {
     webpack: {
       target: 'web',
       devtool: 'inline-source-map',
+      resolve: {
+        extensions: ['', '.js', '.json', '.jsx']
+      },
       module: {
         loaders: [{
           test: /\.json$/,

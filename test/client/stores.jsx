@@ -64,8 +64,11 @@ describe('Stores', function() {
 
     renderedComponent = renderComponent({
       mixins: [fluxApp.mixins.component],
-      stores: {
-        onTestUpdate: 'test'
+
+      flux: {
+        stores: {
+          onTestUpdate: 'test'
+        }
       },
 
       onTestUpdate: spy,
@@ -88,8 +91,11 @@ describe('Stores', function() {
 
     renderedComponent = renderComponent({
       mixins: [fluxApp.mixins.component],
-      stores: {
-        onTestUpdate: 'test'
+
+      flux: {
+        stores: {
+          onTestUpdate: 'test'
+        }
       },
 
       onTestUpdate: spy,

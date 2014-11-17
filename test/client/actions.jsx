@@ -1,4 +1,4 @@
-/* global describe, it, afterEach, document, spy, expect */
+/* global describe, it, afterEach, document, sinon, expect */
 'use strict';
 
 // env setup
@@ -121,8 +121,11 @@ describe('Actions', function() {
 
     renderedComponent = renderComponent({
       mixins: [fluxApp.mixins.component],
-      actions: {
-        onTestMethodBefore: 'test.method:before'
+
+      flux: {
+        actions: {
+          onTestMethodBefore: 'test.method:before'
+        }
       },
 
       onTestMethodBefore: spy,
@@ -157,8 +160,11 @@ describe('Actions', function() {
 
     renderedComponent = renderComponent({
       mixins: [fluxApp.mixins.component],
-      actions: {
-        onTestMethodAfter: 'test.method:after'
+
+      flux: {
+        actions: {
+          onTestMethodAfter: 'test.method:after'
+        }
       },
 
       onTestMethodAfter: spy,
@@ -189,8 +195,11 @@ describe('Actions', function() {
 
     renderedComponent = renderComponent({
       mixins: [fluxApp.mixins.component],
-      actions: {
-        onTestMethodFailed: 'test.method:failed'
+
+      flux: {
+        actions: {
+          onTestMethodFailed: 'test.method:failed'
+        }
       },
 
       onTestMethodFailed: spy,
@@ -225,8 +234,11 @@ describe('Actions', function() {
 
     renderedComponent = renderComponent({
       mixins: [fluxApp.mixins.component],
-      actions: {
-        onTestMethodFailed: 'test.method:failed'
+
+      flux: {
+        actions: {
+          onTestMethodFailed: 'test.method:failed'
+        }
       },
 
       onTestMethodFailed: spy,
