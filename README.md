@@ -1,11 +1,11 @@
 # Flux based Architecture
 
-This module is an effort to ease the development of flux, http://www.github.com/facebook/flux, based isomorphic applications.
+This module is an effort to ease the development of [flux](http://www.github.com/facebook/flux) based isomorphic applications.
 
 ### Stores
 
-Stores can bind to the actions they listen too, using a method: actiontype namespaced string, we also provide
-a `getInitialState` method. Calling the stores `setState` automatically emits the changed event
+Stores can bind to the actions they listen to, using a method: actiontype namespaced string, we also provide
+a `getInitialState` method. Calling the store's `setState` automatically emits the changed event
 
 ```
   var fluxApp = require('fluxapp');
@@ -44,6 +44,7 @@ If a failure is thrown, a failed event is emitted async/sync depending on the st
     sync: function() {
         return 'sync';
     },
+
     syncFailure: function() {
         throw new Error('sync failure');
     },
@@ -86,8 +87,8 @@ React.createClass({
     return {
       test: this.getStore('test'),
       anothertest: this.getStore('anothertest')
-    }
-  }
+    };
+  },
 
   flux: {
     route: {
@@ -101,10 +102,10 @@ React.createClass({
     actions: {
       onTestMethodBefore: 'test.method:before'
     }
-  }
+  },
 
   onTestMethodBefore: function() {
-    // fired before test.method event, if the event is async  
+    // fired before test.method event, if the event is async
   },
 
   onTestUpdate: function() {
@@ -122,35 +123,36 @@ React.createClass({
       <h1>Hello</h1>
     );
   }
-}};
+});
 ```
 
 ### Isomorphic applications
 
 #### Server side
 
-One approach to creating an isomorphic appliction is the following, here we load the component that we
-have determined is required for this route. Exposed a static load method that invokes the actions needed
-to populate the stores.
+One approach to creating an isomorphic appliction is:
+- Load the component that we have determined is required for this route.
+- Expose a static load method that invokes the actions needed to populate the stores.
 
 ```
 function handler(req, reply) {
-    var fluxApp = require('fluxapp');
-    var componentClass = fluxApp.matchRoute(req.path, {
-      method: req.method
-    });
-    var Component = react.createFactory(componentClass);
-    var data = normalizeRequestData(req);
+  var fluxApp = require('fluxapp');
+  var componentClass = fluxApp.matchRoute(req.path, {
+    method: req.method
+  });
+  var Component = react.createFactory(componentClass);
+  var data = normalizeRequestData(req);
 
-    componentClass.load(data).then(function() {
-      var componentHtml = react.renderToString(Component());
-      var state = {
-          method: req.method,
-          payload: fluxApp.dehydrate()
-      };
+  componentClass.load(data).then(function() {
+    var componentHtml = react.renderToString(Component());
+    var state = {
+        method: req.method,
+        payload: fluxApp.dehydrate()
+    };
 
-      // .. Inject componentHtml and state json into your layout ..
-    });
+    // .. Inject componentHtml and state json into your layout ..
+  });
+}
 ```
 
 #### Client side
@@ -164,7 +166,7 @@ $(function() {
 
   fluxApp.rehydrate(statePassedFromServer.payload);
 
-  ... bind component to node on page representing the component ...
+  // ... bind component to node on page representing the component ...
 });
 ```
 
