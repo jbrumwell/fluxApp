@@ -5,6 +5,10 @@ var expect = require('chai').expect;
 describe('fluxapp', function() {
   var fluxApp = require('../../lib');
 
+  after(function() {
+    fluxApp._stores = {};
+  });
+
   it('should have a getStore method', function() {
     expect(fluxApp.getStore).to.be.a('function');
   });
@@ -43,5 +47,24 @@ describe('fluxapp', function() {
     var store = fluxApp.getStore('test');
 
     expect(store).to.be.a('object');
+  });
+
+  it('should rehydrate store state', function() {
+    var store = fluxApp.createStore('name');
+
+    expect(store.state).to.be.a('object');
+    expect(store.state).to.be.empty();
+
+    fluxApp.rehydrate({
+      stores: {
+        name: {
+          now: 'string'
+        }
+      }
+    });
+
+    expect(store.state).to.be.a('object');
+    expect(store.state).to.not.be.empty();
+    expect(store.state.now).to.equal('string');
   });
 });
