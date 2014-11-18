@@ -2,6 +2,10 @@
 
 This module is an effort to ease the development of [flux](http://www.github.com/facebook/flux) based isomorphic applications.
 
+### Install
+
+`npm install fluxapp --save`
+
 ### Stores
 
 Stores can bind to the actions they listen to, using a method: actiontype namespaced string, we also provide
