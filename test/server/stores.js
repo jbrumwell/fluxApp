@@ -114,11 +114,29 @@ describe('store', function() {
 
     expect(state.myState).to.equal('is');
     expect(state.always).to.equal('here');
+  });
 
-    store.toThere();
+  it('once dehyrated store states should be empty', function() {
+    var store = createStore('dehydrate', {
+      getInitialState: function() {
+        return {
+          myState: 'is',
+          always: 'here'
+        }
+      },
+
+      toThere: function() {
+        this.setState({
+          always: 'there'
+        });
+      }
+    });
+
+    var state = store.dehydrate();
 
     expect(state.myState).to.equal('is');
-    expect(state.always).to.equal('there');
+    expect(state.always).to.equal('here');
+    expect(store.state).to.be.empty();  
   });
 
   it('should rehydrate the store with the supplied state', function() {
