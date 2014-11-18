@@ -95,10 +95,6 @@ React.createClass({
   },
 
   flux: {
-    route: {
-      path: '/path/to/component'
-    },
-
     stores: {
       onTestUpdate: 'test'
     },
@@ -141,6 +137,7 @@ One approach to creating an isomorphic appliction is:
 ```
 function handler(req, reply) {
   var fluxApp = require('fluxapp');
+  var routes = require('./client/routes');
   var componentClass = fluxApp.matchRoute(req.path, {
     method: req.method
   });
@@ -164,6 +161,7 @@ function handler(req, reply) {
 ```
 $(function() {
   var fluxApp = require('fluxapp');
+  var routes = require('./routes');
   var component = fluxApp.matchRoute(window.location.pathname, {
     method: statePassedFromServer.method
   });

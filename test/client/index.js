@@ -7,4 +7,3 @@ require('../server/actions');
 require('../server/router');
 require('./stores');
 require('./actions');
-require('./router');
