@@ -16,6 +16,7 @@
     "bluebird": "^2.3.11",
     "flux": "^2.0.1",
     "lodash": "^2.4.1",
+    "path-match": "^1.2.2",
     "path-to-regexp": "^1.0.1"
   },
   "devDependencies": {

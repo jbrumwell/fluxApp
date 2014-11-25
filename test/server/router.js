@@ -93,5 +93,19 @@ describe('router', function() {
 
       expect(route.id).to.equal(5);
     });
+
+    it('should pull named params from the url', function() {
+      var route = router.getRoute('/test/first/second');
+
+      expect(route.params.named).to.equal('first');
+      expect(route.params.params).to.equal('second');
+    });
+
+    it('should parse query params', function() {
+      var route = router.getRoute('/index?something=else&that=this');
+
+      expect(route.query.something).to.equal('else');
+      expect(route.query.that).to.equal('this');
+    });
   });
 });
