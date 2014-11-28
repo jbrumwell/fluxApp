@@ -11,7 +11,9 @@ describe('store', function() {
   }
 
   afterEach(function() {
-    fluxApp._stores = {};
+    Object.keys(fluxApp._stores).forEach(function destroyStore(id) {
+      fluxApp.removeStore(id);
+    });
   });
 
   it('should have a dehydrate method', function() {
@@ -32,6 +34,11 @@ describe('store', function() {
   it('should have a removeChangeListener method', function() {
     var store = createStore('testing');
     expect(store.removeChangeListener).to.be.a('function');
+  });
+
+  it('should have a waitFor method', function() {
+    var store = createStore('testing');
+    expect(store.waitFor).to.be.a('function');
   });
 
   it('should obtain its initial state from getInitialState', function() {
@@ -136,7 +143,7 @@ describe('store', function() {
 
     expect(state.myState).to.equal('is');
     expect(state.always).to.equal('here');
-    expect(store.state).to.be.empty();  
+    expect(store.state).to.be.empty();
   });
 
   it('should rehydrate the store with the supplied state', function() {
@@ -166,6 +173,52 @@ describe('store', function() {
         fluxApp._actions = {};
         fluxApp.dispatcher.$Dispatcher_callbacks = {};
         done();
+      }
+    });
+
+    fluxApp.createActions('user', {
+      login: function() {
+        return {
+          success: true
+        }
+      }
+    });
+
+    var actions = fluxApp.getActions('user');
+
+    actions.login('user', 'password');
+  });
+
+  it('should wait for specified stores to complete', function(done) {
+    var testStore = createStore('testStore', {
+      actions: {
+        onUserLogin: 'user.login'
+      },
+
+      onUserLogin: function(result, actionType) {
+        this.setState({
+          ran: true
+        });
+      }
+    });
+
+    var store = createStore('actions', {
+      actions: {
+        onUserLogin: 'user.login'
+      },
+
+      onUserLogin: function(result, actionType) {
+        var self = this;
+
+        return this.waitFor('testStore').then(function() {
+          var state = self.getStore('testStore').state;
+          expect(state.ran).to.equal(true);
+          expect(actionType).to.equal(fluxApp.getActionType('user.login'));
+          expect(result.success).to.equal(true);
+          fluxApp._actions = {};
+          fluxApp.dispatcher.$Dispatcher_callbacks = {};
+          done();
+        });
       }
     });
 

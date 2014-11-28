@@ -16,19 +16,21 @@ describe('actions', function() {
     fluxApp._actions = {};
   });
 
-  it('should return a promise', function() {
+  it('should return a promise', function(done) {
     var actions = createActions('test', {
       method: function() {
-        return 'syncing'
+        return 'syncing';
       }
     });
 
     var promise = actions.method();
 
     expect(promise.then).to.be.a('function');
+
+    promise.then(done.bind(null, null));
   });
 
-  it('should emit the failed event when sync', function() {
+  it('should emit the failed event when sync', function(done) {
     var dispatchId;
     var called = false;
 
@@ -42,14 +44,12 @@ describe('actions', function() {
       dispatcher.unregister(dispatchId);
       expect(result.actionType).to.equal(fluxApp.getActionType('test.method:failed'));
       expect(result.payload.message).to.equal('sync failure');
-      called = true;
+      done();
     }
 
     dispatchId = dispatcher.register(listener);
 
     actions.method();
-
-    expect(called).to.equal(true);
   });
 
   it('should emit the event when sync', function(done) {
