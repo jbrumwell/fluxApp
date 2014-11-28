@@ -167,7 +167,9 @@ describe('Actions', function() {
         }
       },
 
-      onTestMethodAfter: spy,
+      onTestMethodAfter: function onTestAfterAction() {
+        done();
+      },
 
       render: function() {
         return (
@@ -176,12 +178,7 @@ describe('Actions', function() {
       }
     });
 
-    var promise = fluxApp.getActions('test').method();
-
-    promise.then(function() {
-      expect(spy.called).to.equal(true);
-      done();
-    });
+    fluxApp.getActions('test').method();
   });
 
   it('should get notified when failed action occurs (SYNC)', function(done) {
@@ -202,7 +199,9 @@ describe('Actions', function() {
         }
       },
 
-      onTestMethodFailed: spy,
+      onTestMethodFailed: function onTestMethodFailed() {
+        done();
+      },
 
       render: function() {
         return (
@@ -211,12 +210,7 @@ describe('Actions', function() {
       }
     });
 
-    var promise = fluxApp.getActions('test').method();
-
-    promise.then(function() {}, function() {
-      expect(spy.called).to.equal(true);
-      done();
-    });
+    fluxApp.getActions('test').method();
   });
 
   it('should get notified when failed action occurs', function(done) {
@@ -241,7 +235,9 @@ describe('Actions', function() {
         }
       },
 
-      onTestMethodFailed: spy,
+      onTestMethodFailed: function onTestMethod() {
+        done();
+      },
 
       render: function() {
         return (
@@ -250,11 +246,6 @@ describe('Actions', function() {
       }
     });
 
-    var promise = fluxApp.getActions('test').method();
-
-    promise.then(function() {}, function() {
-      expect(spy.called).to.equal(true);
-      done();
-    });
+    fluxApp.getActions('test').method();
   });
 });

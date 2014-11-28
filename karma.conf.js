@@ -3,6 +3,8 @@
 // Generated on Wed Oct 01 2014 15:38:20 GMT-0400 (EDT)
 
 module.exports = function(config) {
+  var webpack = require('webpack');
+
   config.set({
 
     // base path that will be used to resolve all patterns (eg. files, exclude)
@@ -26,13 +28,13 @@ module.exports = function(config) {
     // preprocess matching files before serving them to the browser
     // available preprocessors : https://npmjs.org/browse/keyword/karma-preprocessor
     preprocessors : {
-      'test/client/index.js' : [ 'webpack','sourcemap' ]
+      'test/client/index.js' : [ 'webpack', 'sourcemap' ]
     },
 
     // test results reporter to use
     // possible values : 'dots', 'progress'
     // available reporters : https://npmjs.org/browse/keyword/karma-reporter
-    reporters : [ 'progress' ],
+    reporters : [ 'spec' ],
 
     // web server port
     port : 9876,
@@ -56,8 +58,13 @@ module.exports = function(config) {
     // if true, Karma captures browsers, runs the tests and exits
     singleRun : false,
 
-    plubins: [
-      require("karma-webpack")
+    plugins: [
+      'karma-webpack',
+      'karma-sourcemap-loader',
+      'karma-mocha',
+      'karma-sinon-chai',
+      'karma-chrome-launcher',
+      'karma-spec-reporter'
     ],
 
     webpack: {
@@ -67,14 +74,26 @@ module.exports = function(config) {
         extensions: ['', '.js', '.json', '.jsx']
       },
       module: {
-        loaders: [{
-          test: /\.json$/,
-          loader: 'json-loader'
-        }, {
-          test: /\.js(x)?$/,
-          loader: 'jsx-loader?name=js/[name].[ext]'
-        }]
-      }
+        loaders: [
+          {
+            test: /\.json$/,
+            loader: 'json'
+          },
+          {
+            test: /\.js(x)?$/,
+            loader: 'jsx?name=js/[name].[ext]'
+          },
+          {
+            test: /sinon.js$/,
+            loader: "null"
+          }
+        ]
+      },
+      plugins: [
+        new webpack.DefinePlugin({
+          IS_KARMA: true
+        })
+      ],
     }
   });
 };

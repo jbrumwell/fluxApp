@@ -24,7 +24,9 @@ describe('Stores', function() {
       document.body.removeChild(elem);
     }
 
-    fluxApp._stores = {};
+    Object.keys(fluxApp._stores).forEach(function destroyStore(id) {
+      fluxApp.removeStore(id);
+    });
   });
 
   it('should expose a getStore method', function() {

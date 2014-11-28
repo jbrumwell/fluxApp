@@ -6,7 +6,11 @@ describe('fluxapp', function() {
   var fluxApp = require('../../lib');
 
   after(function() {
-    fluxApp._stores = {};
+    var dispatcher = fluxApp.getDispatcher();
+
+    Object.keys(fluxApp._stores).forEach(function destroyStore(id) {
+      fluxApp.removeStore(id);
+    });
   });
 
   it('should have a getStore method', function() {

@@ -1,10 +1,12 @@
 'use strict';
 
-var sinon = require('sinon');
+var Promise = require('bluebird');
 var expect = require('chai').expect;
 
-describe('Dispatcher', function() {
+// runs in both the browser and server https://github.com/webpack/webpack/issues/304
+var mysinon = typeof sinon === 'undefined' ? require('sinon') : sinon;
 
+describe('Dispatcher', function() {
   var Dispatcher = require('../../lib/dispatcher');
   var dispatcher;
   var callbackA;
@@ -12,54 +14,128 @@ describe('Dispatcher', function() {
 
   beforeEach(function() {
     dispatcher = new Dispatcher();
-    callbackA = sinon.spy();
-    callbackB = sinon.spy();
+    callbackA = mysinon.spy();
+    callbackB = mysinon.spy();
   });
 
-  it('should execute all subscriber callbacks', function() {
+  it('should execute all subscriber callbacks', function(done) {
     dispatcher.register(callbackA);
     dispatcher.register(callbackB);
 
     var payload = {};
-    dispatcher.dispatch(payload);
-
-    expect(callbackA.callCount).to.equal(1);
-    expect(callbackA.withArgs(payload).called);
-
-    expect(callbackB.callCount).to.equal(1);
-    expect(callbackB.withArgs(payload).called);
-
-    dispatcher.dispatch(payload);
-
-    expect(callbackA.callCount).to.equal(1);
-    expect(callbackA.withArgs(payload).calledTwice);
-
-    expect(callbackB.callCount).to.equal(1);
-    expect(callbackB.withArgs(payload).calledTwice);
-  });
-
-
-  it('should wait for callbacks registered earlier', function() {
-    var tokenA = dispatcher.register(callbackA);
-
-    dispatcher.register(function(payload) {
-      dispatcher.waitFor([tokenA]);
+    dispatcher.dispatch(payload).then(function() {
       expect(callbackA.callCount).to.equal(1);
       expect(callbackA.withArgs(payload).called);
-      callbackB(payload);
+
+      expect(callbackB.callCount).to.equal(1);
+      expect(callbackB.withArgs(payload).called);
+
+      dispatcher.dispatch(payload).then(function() {
+        expect(callbackA.callCount).to.equal(2);
+        expect(callbackA.withArgs(payload).calledTwice);
+
+        expect(callbackB.callCount).to.equal(2);
+        expect(callbackB.withArgs(payload).calledTwice);
+
+        done();
+      });
+    });
+  });
+
+  it('should execute all subscriber async callbacks', function(done) {
+    dispatcher.register(function() {
+      return new Promise(function(resolve) {
+        setTimeout(function() {
+          callbackA();
+          resolve();
+        }, 350);
+      });
+    });
+    dispatcher.register(function() {
+      return new Promise(function(resolve) {
+        setTimeout(function() {
+          callbackB();
+          resolve();
+        }, 150);
+      });
     });
 
     var payload = {};
-    dispatcher.dispatch(payload);
+    dispatcher.dispatch(payload).then(function() {
+      expect(callbackA.callCount).to.equal(1);
+      expect(callbackA.withArgs(payload).called);
 
-    expect(callbackA.callCount).to.equal(1);
-    expect(callbackA.withArgs(payload).called);
+      expect(callbackB.callCount).to.equal(1);
+      expect(callbackB.withArgs(payload).called);
 
-    expect(callbackB.callCount).to.equal(1);
-    expect(callbackB.withArgs(payload).called);
+      dispatcher.dispatch(payload).then(function() {
+        expect(callbackA.callCount).to.equal(2);
+        expect(callbackA.withArgs(payload).calledTwice);
+
+        expect(callbackB.callCount).to.equal(2);
+        expect(callbackB.withArgs(payload).calledTwice);
+
+        done();
+      });
+    });
   });
 
-  it('should wait for callbacks registered later', function() {
+  it('should wait for callbacks registered earlier', function(done) {
+    var tokenA = dispatcher.register(callbackA);
+
+    dispatcher.register(function(payload) {
+      dispatcher.waitFor([tokenA]).then(function() {
+        expect(callbackA.callCount).to.equal(1);
+        expect(callbackA.withArgs(payload).called);
+        callbackB(payload);
+      }, done)
+    });
+
+    var payload = {};
+
+    dispatcher.dispatch(payload).then(function() {
+      expect(callbackA.callCount).to.equal(1);
+      expect(callbackA.withArgs(payload).called);
+
+      expect(callbackB.callCount).to.equal(1);
+      expect(callbackB.withArgs(payload).called);
+
+      done();
+    }, done);
+  });
+
+  it('should wait for callbacks registered earlier async', function(done) {
+    var tokenA = dispatcher.register(function() {
+      return new Promise(function(resolve) {
+        setTimeout(function() {
+          callbackA();
+          resolve();
+        }, 150);
+      });
+    });
+
+    dispatcher.register(function(payload) {
+      dispatcher.waitFor([tokenA]).then(function() {
+        expect(callbackA.callCount).to.equal(1);
+        expect(callbackA.withArgs(payload).called);
+        callbackB(payload);
+      }, done)
+    });
+
+    var payload = {};
+
+    dispatcher.dispatch(payload).then(function() {
+      expect(callbackA.callCount).to.equal(1);
+      expect(callbackA.withArgs(payload).called);
+
+      expect(callbackB.callCount).to.equal(1);
+      expect(callbackB.withArgs(payload).called);
+
+      done();
+    }, done);
+  });
+
+  it('should wait for callbacks registered later', function(done) {
     dispatcher.register(function(payload) {
       return dispatcher.waitFor([tokenB]).then(function() {
         expect(callbackB.callCount).to.equal(1);
@@ -71,35 +147,144 @@ describe('Dispatcher', function() {
     var tokenB = dispatcher.register(callbackB);
 
     var payload = {};
+
     dispatcher.dispatch(payload).then(function() {
       expect(callbackA.callCount).to.equal(1);
       expect(callbackA.withArgs(payload).called);
 
       expect(callbackB.callCount).to.equal(1);
       expect(callbackB.withArgs(payload).called);
-    });
+      done();
+    }, done);
   });
 
-  it.skip('should throw if dispatch() while dispatching', function() {
+  it('should wait for callbacks registered later async', function(done) {
     dispatcher.register(function(payload) {
-      dispatcher.dispatch(payload);
-      callbackA();
+      return dispatcher.waitFor([tokenB]).then(function() {
+        expect(callbackB.callCount).to.equal(1);
+        expect(callbackB.withArgs(payload).called);
+        callbackA(payload);
+      })
+    });
+
+    var tokenB = dispatcher.register(function() {
+      return new Promise(function(resolve) {
+        setTimeout(function() {
+          callbackB();
+          resolve();
+        }, 150);
+      });
     });
 
     var payload = {};
-    expect(function() {
-      dispatcher.dispatch(payload);
-    }).toThrow();
 
-    expect(callbackA.mock.calls.length).toBe(0);
+    dispatcher.dispatch(payload).then(function() {
+      expect(callbackA.callCount).to.equal(1);
+      expect(callbackA.withArgs(payload).called);
+
+      expect(callbackB.callCount).to.equal(1);
+      expect(callbackB.withArgs(payload).called);
+      done();
+    }, done);
   });
 
-  it('should throw if waitFor() while not dispatching', function() {
+  it('should wait for multiple async', function(done) {
+    var callbackC = mysinon.spy();
+    var callbackD = mysinon.spy();
+
+    var tokenA = dispatcher.register(function() {
+      return dispatcher.waitFor([tokenB, tokenC, tokenD]).then(function() {
+        expect(callbackB.callCount).to.equal(1);
+        expect(callbackC.callCount).to.equal(1);
+        expect(callbackD.callCount).to.equal(1);
+        callbackA();
+      });
+    });
+
+    var tokenB = dispatcher.register(function() {
+      return dispatcher.waitFor([tokenD, tokenC]).then(function() {
+        expect(callbackD.callCount).to.equal(1);
+        expect(callbackC.callCount).to.equal(1);
+        callbackB();
+      });
+    });
+
+    var tokenC = dispatcher.register(function() {
+      return new Promise(function (resolve, reject) {
+        setTimeout(function() {
+          callbackC();
+          resolve();
+        }, 500);
+      });
+    });
+
+    var tokenD = dispatcher.register(function() {
+      return dispatcher.waitFor([tokenC]).then(function() {
+        expect(callbackC.callCount).to.equal(1);
+        callbackD();
+      });
+    });
+
+    var payload = {};
+
+    dispatcher.dispatch(payload).then(function() {
+      expect(callbackA.callCount).to.equal(1);
+      expect(callbackB.callCount).to.equal(1);
+      expect(callbackC.callCount).to.equal(1);
+      expect(callbackD.callCount).to.equal(1);
+      done();
+    });
+  });
+
+  it('should handle complex dependencies async', function(done) {
+    var callbackC = mysinon.spy();
+    var callbackD = mysinon.spy();
+
+    var tokenA = dispatcher.register(function() {
+      return dispatcher.waitFor([tokenB]).then(function() {
+        expect(callbackB.callCount).to.equal(1);
+        callbackA();
+      });
+    });
+
+    var tokenB = dispatcher.register(function() {
+      return dispatcher.waitFor([tokenD]).then(function() {
+        expect(callbackD.callCount).to.equal(1);
+        callbackB();
+      });
+    });
+
+    var tokenC = dispatcher.register(function() {
+      return new Promise(function (resolve, reject) {
+        setTimeout(function() {
+          callbackC();
+          resolve();
+        }, 500);
+      });
+    });
+
+    var tokenD = dispatcher.register(function() {
+      return dispatcher.waitFor([tokenC]).then(function() {
+        expect(callbackC.callCount).to.equal(1);
+        callbackD();
+      });
+    });
+
+    var payload = {};
+
+    dispatcher.dispatch(payload).then(function() {
+      expect(callbackA.callCount).to.equal(1);
+      expect(callbackB.callCount).to.equal(1);
+      expect(callbackC.callCount).to.equal(1);
+      expect(callbackD.callCount).to.equal(1);
+      done();
+    });
+  });
+
+  it('should throw if waitFor() while not dispatching', function(done) {
     var tokenA = dispatcher.register(callbackA);
 
-    expect(function() {
-      dispatcher.waitFor([tokenA]);
-    }).to.throw();
+    dispatcher.waitFor([tokenA]).catch(done.bind(null, null));
 
     expect(callbackA.callCount).to.equal(0);
   });
@@ -108,45 +293,160 @@ describe('Dispatcher', function() {
     var invalidToken = 1337;
 
     dispatcher.register(function() {
-      dispatcher.waitFor([invalidToken]);
+      dispatcher.waitFor([invalidToken]).catch(done.bind(null, null));
     });
 
     var payload = {};
 
-    dispatcher.dispatch(payload).catch(function(err) {
+    dispatcher.dispatch(payload);
+  });
+
+  it('should throw on dispatch() if waitFor() job fails', function(done) {
+    dispatcher.register(function(payload) {
+      callbackA();
+      return dispatcher.waitFor([tokenB]);
+    });
+
+    var tokenB = dispatcher.register(function() {
+      expect(callbackA.callCount).to.equal(1);
+      throw new Error('Error');
+    });
+
+    dispatcher.dispatch({}).catch(function(err) {
+      expect(err).to.be.a('object');
+      expect(err.message).to.equal('Error');
       done();
     });
   });
 
-  it.skip('should throw on self-circular dependencies', function() {
-    var tokenA = dispatcher.register(function() {
-      dispatcher.waitFor([tokenA]);
-    });
-
-    var payload = {};
-    expect(function() {
-      dispatcher.dispatch(payload);
-    }).to.throw();
-
-    expect(callbackA.callCount).toBe(0);
-  });
-
-  it.skip('should throw on multi-circular dependencies', function() {
-    var tokenA = dispatcher.register(function() {
-      dispatcher.waitFor([tokenB]);
+  it('should throw on dispatch() if waitFor() job fails async', function(done) {
+    dispatcher.register(function(payload) {
+      callbackA();
+      return dispatcher.waitFor([tokenB]);
     });
 
     var tokenB = dispatcher.register(function() {
-      dispatcher.waitFor([tokenA]);
+      expect(callbackA.callCount).to.equal(1);
+
+      return new Promise(function(resolve, reject) {
+        setImmediate(function() {
+          reject(new Error('Error'));
+        });
+      })
+    });
+
+    dispatcher.dispatch({}).catch(function(err) {
+      expect(err).to.be.a('object');
+      expect(err.message).to.equal('Error');
+      done();
+    });
+  });
+
+  it('should throw on self-circular dependencies', function(done) {
+    var tokenA = dispatcher.register(function() {
+      return dispatcher.waitFor([tokenA]).then(noop, noop);
     });
 
     var payload = {};
-    expect(function() {
-      dispatcher.dispatch(payload);
-    }).toThrow();
 
-    expect(callbackA.mock.calls.length).toBe(0);
-    expect(callbackB.mock.calls.length).toBe(0);
+    dispatcher.dispatch(payload).catch(done.bind(null, null));
+
+    expect(callbackA.callCount).to.equal(0);
+  });
+
+  /**
+   * This test will log "'Possibly unhandled Error: Dispatcher.waitFor(...): Circular dependency detected"
+   * because of the then() on the rejected promise, bluebird does not know if it was handled
+   */
+  it('should throw on self-circular dependencies async', function(done) {
+    var tokenA = dispatcher.register(function() {
+      return new Promise(function(resolve, reject) {
+        setImmediate(function() {
+          dispatcher.waitFor([tokenA]).then(resolve, reject);
+        });
+      });
+    });
+
+    var payload = {};
+
+    dispatcher.dispatch(payload).catch(function() {
+      expect(callbackA.callCount).to.equal(0);
+      done();
+    });
+
+    expect(callbackA.callCount).to.equal(0);
+  });
+
+  it('should throw on multi-circular dependencies', function(done) {
+    var tokenA = dispatcher.register(function() {
+      dispatcher.waitFor([tokenB]).catch(done.bind(null, null));
+    });
+
+    var tokenB = dispatcher.register(function() {
+      dispatcher.waitFor([tokenA]).catch(done.bind(null, null));
+    });
+
+    var payload = {};
+
+    dispatcher.dispatch(payload).catch(function() {
+      expect(callbackA.callCount).to.equal(0);
+      expect(callbackB.callCount).to.equal(0);
+      done();
+    });
+  });
+
+  it('should throw on multi-circular dependencies async', function(done) {
+    var tokenA = dispatcher.register(function() {
+      callbackA();
+      return new Promise(function(resolve) {
+        dispatcher.waitFor([tokenB]).then(callbackA, done.bind(null, null));
+      });
+    });
+
+    var tokenB = dispatcher.register(function() {
+      expect(callbackA.calledCount).to.equal(1);
+      dispatcher.waitFor([tokenA]).then(callbackB, done.bind(null, null));
+    });
+
+    var payload = {};
+
+    dispatcher.dispatch(payload).catch(function() {
+      expect(callbackA.callCount).to.equal(1);
+      expect(callbackB.callCount).to.equal(0);
+      done();
+    });
+  });
+
+  it('should throw on complex circular dependencies async', function(done) {
+    var callbackC = mysinon.spy();
+
+    var tokenA = dispatcher.register(function() {
+      callbackA();
+      return dispatcher.waitFor([tokenB]);
+    });
+
+    var tokenB = dispatcher.register(function() {
+      callbackB();
+      return dispatcher.waitFor([tokenD])
+    });
+
+    var tokenC = dispatcher.register(function() {
+      return new Promise(function (resolve, reject) {
+        callbackC();
+        setTimeout(resolve, 1000);
+      });
+    });
+
+    var tokenD = dispatcher.register(function() {
+      expect(callbackA.callCount).to.equal(1);
+      expect(callbackB.callCount).to.equal(1);
+      expect(callbackC.callCount).to.equal(0);
+      return dispatcher.waitFor([tokenA]).catch(done.bind(null, null));
+    });
+
+    var payload = {};
+
+    dispatcher.dispatch(payload);
   });
 
   it('should remain in a consistent state after a failed dispatch', function(done) {
@@ -171,28 +471,58 @@ describe('Dispatcher', function() {
     });
   });
 
-  it('should properly unregister callbacks', function() {
+  it('should properly unregister callbacks', function(done) {
     dispatcher.register(callbackA);
 
     var tokenB = dispatcher.register(callbackB);
 
     var payload = {};
-    dispatcher.dispatch(payload);
+    dispatcher.dispatch(payload).then(function() {
+      expect(callbackA.callCount).to.equal(1);
+      expect(callbackA.withArgs(payload).called);
 
-    expect(callbackA.callCount).to.equal(1);
-    expect(callbackA.withArgs(payload).called);
+      expect(callbackB.callCount).to.equal(1);
+      expect(callbackB.withArgs(payload).called);
 
-    expect(callbackB.callCount).to.equal(1);
-    expect(callbackB.withArgs(payload).called);
+      dispatcher.unregister(tokenB);
 
-    dispatcher.unregister(tokenB);
+      dispatcher.dispatch(payload).then(function() {
+        expect(callbackA.callCount).to.equal(2);
+        expect(callbackA.withArgs(payload).calledTwice);
 
-    dispatcher.dispatch(payload);
+        expect(callbackB.callCount).to.equal(1);
 
-    expect(callbackA.callCount).to.equal(1);
-    expect(callbackA.withArgs(payload).calledTwice);
-
-    expect(callbackB.callCount).to.equal(1);
+        done();
+      });
+    });
   });
 
+  it('should queue events when dispatching a current event', function(done) {
+    var dispatch1 = mysinon.spy();
+    var dispatch2 = mysinon.spy();
+    dispatcher.register(function(payload) {
+      if (payload.type === 'initial') {
+        payload.type = 'secondary';
+
+        dispatcher.dispatch(payload).then(function() {
+          expect(dispatch1.called).to.equal(true);
+          expect(dispatch1.callCount).to.equal(1);
+          expect(dispatcher._queued.length).to.equal(0);
+          dispatch2();
+          done();
+        });
+
+        expect(dispatcher._queued.length).to.equal(1);
+      }
+    });
+
+    var payload = {
+      type: 'initial'
+    };
+
+    dispatcher.dispatch(payload).then(function() {
+      expect(dispatch2.called).to.equal(false);
+      dispatch1();
+    });
+  });
 });
