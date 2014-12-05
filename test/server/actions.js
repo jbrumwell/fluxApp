@@ -180,4 +180,16 @@ describe('actions', function() {
 
     actions.method();
   });
+
+  it('should receive the parameters passed by component', function(done) {
+    fluxApp.createActions('test', {
+      method: function(a, b) {
+        expect(a).to.equal('a');
+        expect(b).to.equal('b');
+        done();
+      }
+    });
+
+    fluxApp.getActions('test').method('a', 'b');
+  });
 });
