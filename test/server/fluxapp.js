@@ -53,17 +53,25 @@ describe('fluxapp', function() {
     expect(store).to.be.a('object');
   });
 
-  it('should rehydrate store state', function() {
-    var store = fluxApp.createStore('name');
+  it('should rehydrate store state base on action', function() {
+    var store = fluxApp.createStore('name', {
+      actions: {
+        onTest: 'test.test'
+      },
+
+      onTest: function onTest(state) {
+        this.setState(state);
+      }
+    });
 
     expect(store.state).to.be.a('object');
     expect(store.state).to.be.empty();
 
     fluxApp.rehydrate({
       stores: {
-        name: {
+        name: [fluxApp.getActionType('test.test'), {
           now: 'string'
-        }
+        }]
       }
     });
 

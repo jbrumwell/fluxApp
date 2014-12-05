@@ -1,5 +1,6 @@
 'use strict';
 var expect = require('chai').expect;
+var Promise = require('bluebird');
 
 describe('store', function() {
   var fluxApp = require('../../lib');
@@ -147,18 +148,97 @@ describe('store', function() {
   });
 
   it('should rehydrate the store with the supplied state', function() {
-    var store = createStore('rehydrate');
+    var store = createStore('rehydrate', {
+      actions: {
+        onTestData: 'test.data'
+      },
+
+      onTestData: function onTestData(data) {
+        this.setState(data);
+      }
+    });
 
     expect(store.state).to.be.a('object');
     expect(store.state).to.be.empty();
 
-    store.rehydrate({
-      now: 'string'
-    });
+    store.rehydrate(
+      [
+        fluxApp.getActionType('test.data'),
+        {
+          now: 'string'
+        }
+      ]
+    );
 
     expect(store.state).to.be.a('object');
     expect(store.state).to.not.be.empty();
     expect(store.state.now).to.equal('string');
+  });
+
+  it('should rehydrate from action result', function(done) {
+    var store = createStore('actions', {
+      actions: {
+        onUserLogin: 'user.login'
+      },
+
+      onUserLogin: function(result, actionType) {
+        fluxApp._actions = {};
+        fluxApp.dispatcher.$Dispatcher_callbacks = {};
+        this.setState(result);
+      }
+    });
+
+    fluxApp.createActions('user', {
+      login: function() {
+        return {
+          success: true
+        }
+      }
+    });
+
+    var actions = fluxApp.getActions('user');
+
+    actions.login('user', 'password').then(function loginResult(result) {
+      store.rehydrate(result);
+
+      expect(store.state).to.have.property('success');
+      expect(store.state.success).to.equal(true);
+      done();
+    });
+  });
+
+  it('should rehydrate from action result async', function(done) {
+    var store = createStore('actions', {
+      actions: {
+        onUserLogin: 'user.login'
+      },
+
+      onUserLogin: function(result, actionType) {
+        fluxApp._actions = {};
+        fluxApp.dispatcher.$Dispatcher_callbacks = {};
+        this.setState(result);
+      }
+    });
+
+    fluxApp.createActions('user', {
+      login: function() {
+        return new Promise(function(resolve) {
+          setImmediate(resolve.bind(resolve, {
+            success: true
+          }));
+        })
+      }
+    });
+
+    var actions = fluxApp.getActions('user');
+
+    actions.login('user', 'password').then(function loginResult(result) {
+      store.rehydrate(result);
+
+      expect(store.state).to.have.property('success');
+      expect(store.state.success).to.equal(true);
+      done();
+    });
   });
 
   it('should bind to actions provided', function(done) {
