@@ -1,4 +1,6 @@
+/* global describe, it, afterEach */
 'use strict';
+
 var expect = require('chai').expect;
 var Promise = require('bluebird');
 
@@ -44,13 +46,13 @@ describe('store', function() {
 
   it('should obtain its initial state from getInitialState', function() {
     var store = createStore('exposed', {
-      getInitialState: function() {
+      getInitialState : function() {
         return {
-          something: 'else'
+          something : 'else'
         };
       },
 
-      getSomething: function() {
+      getSomething : function() {
         return this.state.something;
       }
     });
@@ -61,13 +63,13 @@ describe('store', function() {
 
   it('should expose getter methods provided', function() {
     var store = createStore('exposed', {
-      getInitialState: function() {
+      getInitialState : function() {
         return {
-          something: 'else'
+          something : 'else'
         };
       },
 
-      getSomething: function() {
+      getSomething : function() {
         return this.state.something;
       }
     });
@@ -78,19 +80,19 @@ describe('store', function() {
 
   it('should emit a change event when state is changed', function(done) {
     var store = createStore('exposed', {
-      getInitialState: function() {
+      getInitialState : function() {
         return {
-          something: 'else'
+          something : 'else'
         };
       },
 
-      setSomething: function() {
+      setSomething : function() {
         this.setState({
-          something: 'new'
+          something : 'new'
         });
       },
 
-      getSomething: function() {
+      getSomething : function() {
         return this.state.something;
       }
     });
@@ -104,16 +106,16 @@ describe('store', function() {
 
   it('should dehydrate its state', function() {
     var store = createStore('dehydrate', {
-      getInitialState: function() {
+      getInitialState : function() {
         return {
-          myState: 'is',
-          always: 'here'
-        }
+          myState : 'is',
+          always : 'here'
+        };
       },
 
-      toThere: function() {
+      toThere : function() {
         this.setState({
-          always: 'there'
+          always : 'there'
         });
       }
     });
@@ -126,16 +128,16 @@ describe('store', function() {
 
   it('once dehyrated store states should be empty', function() {
     var store = createStore('dehydrate', {
-      getInitialState: function() {
+      getInitialState : function() {
         return {
-          myState: 'is',
-          always: 'here'
-        }
+          myState : 'is',
+          always : 'here'
+        };
       },
 
-      toThere: function() {
+      toThere : function() {
         this.setState({
-          always: 'there'
+          always : 'there'
         });
       }
     });
@@ -149,11 +151,11 @@ describe('store', function() {
 
   it('should rehydrate the store with the supplied state', function() {
     var store = createStore('rehydrate', {
-      actions: {
-        onTestData: 'test.data'
+      actions : {
+        onTestData : 'test.data'
       },
 
-      onTestData: function onTestData(data) {
+      onTestData : function onTestData(data) {
         this.setState(data);
       }
     });
@@ -165,7 +167,7 @@ describe('store', function() {
       [
         fluxApp.getActionType('test.data'),
         {
-          now: 'string'
+          now : 'string'
         }
       ]
     );
@@ -177,22 +179,24 @@ describe('store', function() {
 
   it('should rehydrate from action result', function(done) {
     var store = createStore('actions', {
-      actions: {
-        onUserLogin: 'user.login'
+      actions : {
+        onUserLogin : 'user.login'
       },
 
-      onUserLogin: function(result, actionType) {
+      onUserLogin : function(result, actionType) {
         fluxApp._actions = {};
+        // jshint camelcase:false
         fluxApp.dispatcher.$Dispatcher_callbacks = {};
+        // jshint camelcase:true
         this.setState(result);
       }
     });
 
     fluxApp.createActions('user', {
-      login: function() {
+      login : function() {
         return {
-          success: true
-        }
+          success : true
+        };
       }
     });
 
@@ -209,24 +213,26 @@ describe('store', function() {
 
   it('should rehydrate from action result async', function(done) {
     var store = createStore('actions', {
-      actions: {
-        onUserLogin: 'user.login'
+      actions : {
+        onUserLogin : 'user.login'
       },
 
-      onUserLogin: function(result, actionType) {
+      onUserLogin : function(result, actionType) {
         fluxApp._actions = {};
+        // jshint camelcase:false
         fluxApp.dispatcher.$Dispatcher_callbacks = {};
+        // jshint camelcase:true
         this.setState(result);
       }
     });
 
     fluxApp.createActions('user', {
-      login: function() {
+      login : function() {
         return new Promise(function(resolve) {
           setImmediate(resolve.bind(resolve, {
-            success: true
+            success : true
           }));
-        })
+        });
       }
     });
 
@@ -242,25 +248,27 @@ describe('store', function() {
   });
 
   it('should bind to actions provided', function(done) {
-    var store = createStore('actions', {
-      actions: {
-        onUserLogin: 'user.login'
+    createStore('actions', {
+      actions : {
+        onUserLogin : 'user.login'
       },
 
-      onUserLogin: function(result, actionType) {
+      onUserLogin : function(result, actionType) {
         expect(actionType).to.equal(fluxApp.getActionType('user.login'));
         expect(result.success).to.equal(true);
         fluxApp._actions = {};
+        // jshint camelcase:false
         fluxApp.dispatcher.$Dispatcher_callbacks = {};
+        // jshint camelcase:true
         done();
       }
     });
 
     fluxApp.createActions('user', {
-      login: function() {
+      login : function() {
         return {
-          success: true
-        }
+          success : true
+        };
       }
     });
 
@@ -270,24 +278,24 @@ describe('store', function() {
   });
 
   it('should wait for specified stores to complete', function(done) {
-    var testStore = createStore('testStore', {
-      actions: {
-        onUserLogin: 'user.login'
+    createStore('testStore', {
+      actions : {
+        onUserLogin : 'user.login'
       },
 
-      onUserLogin: function(result, actionType) {
+      onUserLogin : function(result, actionType) {
         this.setState({
-          ran: true
+          ran : true
         });
       }
     });
 
-    var store = createStore('actions', {
-      actions: {
-        onUserLogin: 'user.login'
+    createStore('actions', {
+      actions : {
+        onUserLogin : 'user.login'
       },
 
-      onUserLogin: function(result, actionType) {
+      onUserLogin : function(result, actionType) {
         var self = this;
 
         return this.waitFor('testStore').then(function() {
@@ -296,17 +304,19 @@ describe('store', function() {
           expect(actionType).to.equal(fluxApp.getActionType('user.login'));
           expect(result.success).to.equal(true);
           fluxApp._actions = {};
+          // jshint camelcase:false
           fluxApp.dispatcher.$Dispatcher_callbacks = {};
+          // jshint camelcase:true
           done();
         });
       }
     });
 
     fluxApp.createActions('user', {
-      login: function() {
+      login : function() {
         return {
-          success: true
-        }
+          success : true
+        };
       }
     });
 

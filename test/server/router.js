@@ -1,3 +1,4 @@
+/* global describe, it, beforeEach */
 'use strict';
 var expect = require('chai').expect;
 
@@ -6,27 +7,27 @@ describe('router', function() {
   var Router = require('../../lib/router');
   var testRoutes = [
     {
-      id: 1,
-      path: '/index',
-      method: 'GET'
+      id : 1,
+      path : '/index',
+      method : 'GET'
     },
     {
-      id: 2,
-      path: '/index(/?)',
-      method: 'POST'
+      id : 2,
+      path : '/index(/?)',
+      method : 'POST'
     },
     {
-      id: 3,
-      path: '/test/:named/:params'
+      id : 3,
+      path : '/test/:named/:params'
     },
     {
-      id: 4,
-      path: '/test/optional/:params?'
+      id : 4,
+      path : '/test/optional/:params?'
     },
     {
-      id: 5,
-      path: '/notFound',
-      notFound: true
+      id : 5,
+      path : '/notFound',
+      notFound : true
     }
   ];
   var router;
@@ -63,17 +64,17 @@ describe('router', function() {
 
   describe('Matching', function() {
     it('should consider route method if provided', function() {
-       var route = router.getRoute('/index', {
-         method: 'GET'
-       });
+      var route = router.getRoute('/index', {
+        method : 'GET'
+      });
 
-       expect(route.id).to.equal(1);
+      expect(route.id).to.equal(1);
 
-       var route = router.getRoute('/index', {
-         method: 'POST'
-       });
+      route = router.getRoute('/index', {
+        method : 'POST'
+      });
 
-       expect(route.id).to.equal(2);
+      expect(route.id).to.equal(2);
     });
 
     it('should accept named parameters', function() {

@@ -1,10 +1,9 @@
-/* global describe, it, afterEach, document, spy, expect */
+/* global describe, it, afterEach, document, expect, sinon */
 'use strict';
 
 // env setup
 var React = require('react/addons');
 var fluxApp = require('../../lib');
-//var TestUtils = React.addons.TestUtils;
 
 describe('Stores', function() {
 
@@ -31,9 +30,9 @@ describe('Stores', function() {
 
   it('should expose a getStore method', function() {
     renderedComponent = renderComponent({
-      mixins: [fluxApp.mixins.component],
+      mixins : [ fluxApp.mixins.component ],
 
-      render: function() {
+      render : function() {
         expect(this.getStore).to.be.a('function');
 
         return (
@@ -47,9 +46,9 @@ describe('Stores', function() {
     fluxApp.createStore('test');
 
     renderedComponent = renderComponent({
-      mixins: [fluxApp.mixins.component],
+      mixins : [ fluxApp.mixins.component ],
 
-      render: function() {
+      render : function() {
         expect(this.getStore).to.be.a('function');
         expect(this.getStore('test').id).to.equal('test');
 
@@ -65,17 +64,17 @@ describe('Stores', function() {
     var spy = sinon.spy();
 
     renderedComponent = renderComponent({
-      mixins: [fluxApp.mixins.component],
+      mixins : [ fluxApp.mixins.component ],
 
-      flux: {
-        stores: {
-          onTestUpdate: 'test'
+      flux : {
+        stores : {
+          onTestUpdate : 'test'
         }
       },
 
-      onTestUpdate: spy,
+      onTestUpdate : spy,
 
-      render: function() {
+      render : function() {
         return (
           <h1>Hello</h1>
         );
@@ -92,17 +91,17 @@ describe('Stores', function() {
     var spy = sinon.spy();
 
     renderedComponent = renderComponent({
-      mixins: [fluxApp.mixins.component],
+      mixins : [ fluxApp.mixins.component ],
 
-      flux: {
-        stores: {
-          onTestUpdate: 'test'
+      flux : {
+        stores : {
+          onTestUpdate : 'test'
         }
       },
 
-      onTestUpdate: spy,
+      onTestUpdate : spy,
 
-      render: function() {
+      render : function() {
         return (
           <h1>Hello</h1>
         );

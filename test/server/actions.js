@@ -1,3 +1,4 @@
+/* global describe, afterEach, it */
 'use strict';
 var expect = require('chai').expect;
 
@@ -18,7 +19,7 @@ describe('actions', function() {
 
   it('should return a promise', function(done) {
     var actions = createActions('test', {
-      method: function() {
+      method : function() {
         return 'syncing';
       }
     });
@@ -32,10 +33,9 @@ describe('actions', function() {
 
   it('should emit the failed event when sync', function(done) {
     var dispatchId;
-    var called = false;
 
     var actions = createActions('test', {
-      method: function() {
+      method : function() {
         throw new Error('sync failure');
       }
     });
@@ -56,8 +56,8 @@ describe('actions', function() {
     var dispatchId;
 
     var actions = createActions('test', {
-      method: function() {
-        return 'sync'
+      method : function() {
+        return 'sync';
       }
     });
 
@@ -77,7 +77,7 @@ describe('actions', function() {
     var dispatchId;
 
     var actions = createActions('test', {
-      method: function() {
+      method : function() {
         return new Promise(function(resolve, reject) {
           setImmediate(function() {
             resolve('async');
@@ -89,7 +89,7 @@ describe('actions', function() {
     function listener(result) {
       dispatcher.unregister(dispatchId);
       expect(result.actionType).to.equal(fluxApp.getActionType('test.method:before'));
-      expect(result.payload).to.be.undefined;
+      expect(result.payload).to.be.undefined();
       done();
     }
 
@@ -103,7 +103,7 @@ describe('actions', function() {
     var eventName = fluxApp.getActionType('test.method');
 
     var actions = createActions('test', {
-      method: function() {
+      method : function() {
         return new Promise(function(resolve, reject) {
           setImmediate(function() {
             resolve('async');
@@ -130,7 +130,7 @@ describe('actions', function() {
     var eventName = fluxApp.getActionType('test.method:after');
 
     var actions = createActions('test', {
-      method: function() {
+      method : function() {
         return new Promise(function(resolve, reject) {
           setImmediate(function() {
             resolve('async success');
@@ -143,7 +143,7 @@ describe('actions', function() {
       if (result.actionType === eventName) {
         dispatcher.unregister(dispatchId);
         expect(result.actionType).to.equal(eventName);
-        expect(result.payload).to.be.undefined;
+        expect(result.payload).to.be.undefined();
         done();
       }
     }
@@ -156,10 +156,9 @@ describe('actions', function() {
   it('should emit the failed event when async', function(done) {
     var dispatchId;
     var eventName = fluxApp.getActionType('test.method:failed');
-    var promise;
 
     var actions = createActions('test', {
-      method: function() {
+      method : function() {
         return new Promise(function(resolve, reject) {
           setImmediate(function() {
             reject(new Error('async failure'));
@@ -183,7 +182,7 @@ describe('actions', function() {
 
   it('should receive the parameters passed by component', function(done) {
     fluxApp.createActions('test', {
-      method: function(a, b) {
+      method : function(a, b) {
         expect(a).to.equal('a');
         expect(b).to.equal('b');
         done();
@@ -195,10 +194,10 @@ describe('actions', function() {
 
   it('should resolve to an object of actionType = actionResponse', function(done) {
     fluxApp.createActions('test', {
-      method: function(a, b) {
+      method : function(a, b) {
         expect(a).to.equal('a');
         expect(b).to.equal('b');
-        return [a, b];
+        return [ a, b ];
       }
     });
 
@@ -216,11 +215,11 @@ describe('actions', function() {
 
   it('should resolve to an object of actionType = actionResponse async', function(done) {
     fluxApp.createActions('test', {
-      method: function(a, b) {
+      method : function(a, b) {
         expect(a).to.equal('a');
         expect(b).to.equal('b');
         return new Promise(function(resolve) {
-          setImmediate(resolve.bind(resolve,[a, b]));
+          setImmediate(resolve.bind(resolve, [ a, b ]));
         });
       }
     });

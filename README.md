@@ -8,18 +8,16 @@ This module is an effort to ease the development of [flux](http://www.github.com
 
 ### Stores
 
-Stores can bind to the actions they listen to, using a method: actiontype namespaced string, we also provide
-a `getInitialState` method. Calling the store's `setState` automatically emits the changed event
+#### Action Binding
+
+fluxApp stores can bind to actions that are dispatched, the example below will call `onUserLogin`
+on the user.login event
 
 ```
   var fluxApp = require('fluxapp');
 
   fluxApp.createStore('namespace', {
-    getInitialState: function getInitialState() {
-      return {
-        my: 'state'
-      };
-    },
+    mixins: [fluxApp.mixins.component],
 
     action: {
       onUserLogin: 'user.login'

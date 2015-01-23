@@ -29,9 +29,9 @@ describe('Actions', function() {
 
   it('should expose a getActions method', function() {
     renderedComponent = renderComponent({
-      mixins: [fluxApp.mixins.component],
+      mixins : [fluxApp.mixins.component],
 
-      render: function() {
+      render : function() {
         expect(this.getActions).to.be.a('function');
 
         return (
@@ -43,9 +43,9 @@ describe('Actions', function() {
 
   it('should expose a getAction method', function() {
     renderedComponent = renderComponent({
-      mixins: [fluxApp.mixins.component],
+      mixins : [fluxApp.mixins.component],
 
-      render: function() {
+      render : function() {
         expect(this.getActions).to.be.a('function');
 
         return (
@@ -58,14 +58,14 @@ describe('Actions', function() {
   describe('getActions', function() {
     it('should return the actions registered', function() {
       fluxApp.createActions('testing', {
-        methodA: function() {},
-        methodB: function() {}
+        methodA : function() {},
+        methodB : function() {}
       });
 
       renderedComponent = renderComponent({
-        mixins: [fluxApp.mixins.component],
+        mixins : [ fluxApp.mixins.component ],
 
-        render: function() {
+        render : function() {
           expect(this.getActions).to.be.a('function');
           var actions = this.getActions('testing');
 
@@ -84,14 +84,14 @@ describe('Actions', function() {
   describe('getAction', function() {
     it('should return the action requested', function() {
       fluxApp.createActions('testing', {
-        methodA: function() {},
-        methodB: function() {}
+        methodA : function() {},
+        methodB : function() {}
       });
 
       renderedComponent = renderComponent({
-        mixins: [fluxApp.mixins.component],
+        mixins: [ fluxApp.mixins.component ],
 
-        render: function() {
+        render : function() {
           expect(this.getAction).to.be.a('function');
           var action = this.getAction('testing', 'methodA');
 
@@ -110,7 +110,7 @@ describe('Actions', function() {
     var spy = sinon.spy();
 
     fluxApp.createActions('test', {
-      method: function() {
+      method : function() {
         return new Promise(function(resolve){
           setImmediate(function() {
             resolve('something');
@@ -120,17 +120,17 @@ describe('Actions', function() {
     });
 
     renderedComponent = renderComponent({
-      mixins: [fluxApp.mixins.component],
+      mixins : [ fluxApp.mixins.component ],
 
-      flux: {
-        actions: {
-          onTestMethodBefore: 'test.method:before'
+      flux : {
+        actions : {
+          onTestMethodBefore : 'test.method:before'
         }
       },
 
-      onTestMethodBefore: spy,
+      onTestMethodBefore : spy,
 
-      render: function() {
+      render : function() {
         return (
           <h1>Hello</h1>
         );

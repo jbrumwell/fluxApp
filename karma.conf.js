@@ -58,7 +58,7 @@ module.exports = function(config) {
     // if true, Karma captures browsers, runs the tests and exits
     singleRun : false,
 
-    plugins: [
+    plugins : [
       'karma-webpack',
       'karma-sourcemap-loader',
       'karma-mocha',
@@ -67,31 +67,31 @@ module.exports = function(config) {
       'karma-spec-reporter'
     ],
 
-    webpack: {
-      target: 'web',
-      devtool: 'inline-source-map',
-      resolve: {
-        extensions: ['', '.js', '.json', '.jsx']
+    webpack : {
+      target : 'web',
+      devtool : 'inline-source-map',
+      resolve : {
+        extensions : [ '', '.js', '.json', '.jsx' ]
       },
-      module: {
-        loaders: [
+      module : {
+        loaders : [
           {
-            test: /\.json$/,
-            loader: 'json'
+            test : /\.json$/,
+            loader : 'json'
           },
           {
-            test: /\.js(x)?$/,
-            loader: 'jsx?name=js/[name].[ext]'
+            test : /\.js(x)?$/,
+            loader : 'jsx?name=js/[name].[ext]'
           },
           {
-            test: /sinon.js$/,
-            loader: "null"
+            test : /sinon.js$/,
+            loader : 'null'
           }
         ]
       },
-      plugins: [
+      plugins : [
         new webpack.DefinePlugin({
-          IS_KARMA: true
+          IS_KARMA : true
         })
       ],
     }

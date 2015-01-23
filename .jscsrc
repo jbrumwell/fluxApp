@@ -1,4 +1,5 @@
 {
+  "esprima": "esprima-fb",
   "additionalRules": [
     "node_modules/jscs-jsdoc/lib/rules/*.js"
   ],

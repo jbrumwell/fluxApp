@@ -1,3 +1,4 @@
+/* global describe, it, after */
 'use strict';
 
 var expect = require('chai').expect;
@@ -6,8 +7,6 @@ describe('fluxapp', function() {
   var fluxApp = require('../../lib');
 
   after(function() {
-    var dispatcher = fluxApp.getDispatcher();
-
     Object.keys(fluxApp._stores).forEach(function destroyStore(id) {
       fluxApp.removeStore(id);
     });
@@ -55,11 +54,11 @@ describe('fluxapp', function() {
 
   it('should rehydrate store state base on action', function() {
     var store = fluxApp.createStore('name', {
-      actions: {
-        onTest: 'test.test'
+      actions : {
+        onTest : 'test.test'
       },
 
-      onTest: function onTest(state) {
+      onTest : function onTest(state) {
         this.setState(state);
       }
     });
@@ -68,10 +67,13 @@ describe('fluxapp', function() {
     expect(store.state).to.be.empty();
 
     fluxApp.rehydrate({
-      stores: {
-        name: [fluxApp.getActionType('test.test'), {
-          now: 'string'
-        }]
+      stores : {
+        name : [
+          fluxApp.getActionType('test.test'),
+          {
+            now : 'string'
+          }
+        ]
       }
     });
 

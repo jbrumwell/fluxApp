@@ -1,4 +1,6 @@
+/* global window */
 'use strict';
+
 window.setImmediate = process.nextTick;
 
 require('../server/fluxapp');
