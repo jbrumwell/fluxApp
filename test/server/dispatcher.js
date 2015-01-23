@@ -344,10 +344,8 @@ describe('Dispatcher', function() {
   });
 
   it('should throw on self-circular dependencies', function(done) {
-    var noop = function() {};
-
     var tokenA = dispatcher.register(function() {
-      return dispatcher.waitFor([ tokenA ]).then(noop, noop);
+      return dispatcher.waitFor([ tokenA ]);
     });
 
     var payload = {};
