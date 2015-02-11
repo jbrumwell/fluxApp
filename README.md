@@ -11,7 +11,7 @@ This module is an effort to ease the development of [flux](http://www.github.com
 #### Action Binding
 
 fluxApp stores can bind to actions that are dispatched, the example below will call `onUserLogin`
-on the user.login event
+on a successful user.login action
 
 ```
   var fluxApp = require('fluxapp');
@@ -19,7 +19,7 @@ on the user.login event
   fluxApp.createStore('namespace', {
     mixins: [fluxApp.mixins.component],
 
-    action: {
+    actions: {
       onUserLogin: 'user.login'
     },
 
@@ -29,13 +29,27 @@ on the user.login event
   });
 ```
 
+One store function can bind to multiple actions. In the following example
+`onUserStateChange` is called both when user logs in and out
+
+```
+  ...
+  actions: {
+    onUserStateChange: ['user.login', 'user.logout']
+  },
+
+  onUserStateChange: function(result, actionType) {
+  ...
+
+```
+
 ### Actions
 
 Actions are namespaced and allow for both async and sync actions. Sync actions only dispatch their
 action event, whereas async functions will dispatch both a before and after event.
 
-Sync actions emit sync events, async events emit a sync before event as async after and main action event
-when the promise resolves.
+Sync actions emit sync events, async events emit a sync before event, main action event
+when the promise resolves and an after event afterwards.
 
 If a failure is thrown, a failed event is emitted async/sync depending on the state of the promise
 
@@ -62,7 +76,7 @@ If a failure is thrown, a failed event is emitted async/sync depending on the st
     asyncFailure: function() {
       return new Promise(function(resolve, reject) {
         setImmediate(function() {
-            reject(new Erro('async'));
+            reject(new Error('async'));
         });
       });
     }
@@ -73,10 +87,37 @@ If a failure is thrown, a failed event is emitted async/sync depending on the st
   actions.sync();
 ```
 
+#### Binding to side events
+
+It's possible to easily bind to before/after/failed events from inside the stores, consider the following:
+
+```
+  var fluxApp = require('fluxapp');
+
+  fluxApp.createStore('namespace', {
+    mixins: [fluxApp.mixins.component],
+
+    actions: {
+      onFailedLogin: 'user.login:failed',
+      onBeforeLogin: 'user.login:before'
+    },
+
+    onFailedLogin: function(result, actionType) {
+      // Called when login fails
+    },
+
+    onBeforeLogin: function(result, actionType) {
+      // Called before executing the login action
+    }
+  });
+```
+
+
+
 ### Component Mixin
 
 The mixin component automatically binds to stores change events and will listen for async action events
-like before, after or failed. So the ui can be updated accordingly. It also takes care of ensuring that
+like before, after or failed so the ui can be updated accordingly. It also takes care of ensuring that
 the component is currently mounted.
 
 The mixin will also expose a few helper methods `getStore(namespace)`, `getActions(namespace)`, `getAction(namespace, method)`
@@ -87,8 +128,8 @@ React.createClass({
 
   getInitalState: function() {
     return {
-      test: this.getStore('test'),
-      anothertest: this.getStore('anothertest')
+      test: this.getStore('test').state,
+      anothertest: this.getStore('anothertest').state
     };
   },
 
@@ -118,7 +159,7 @@ React.createClass({
 
   render: function() {
     return (
-      <h1>Hello</h1>
+      <h1>Hello Flux</h1>
     );
   }
 });
@@ -128,15 +169,16 @@ React.createClass({
 
 #### Server side
 
-One approach to creating an isomorphic appliction is:
+Our suggested approach to creating an isomorphic application is:
 - Load the component that we have determined is required for this route.
 - Expose a static load method that invokes the actions needed to populate the stores.
 
 ```
-function handler(req, reply) {
-  var fluxApp = require('fluxapp');
+var fluxApp = require('fluxapp');
 
-  fluxApp.createRoutes(require('./client/routes'));
+fluxApp.createRoutes(require('./client/routes'));
+
+function handler(req, reply) {
 
   var componentClass = fluxApp.matchRoute(req.path, {
     method: req.method
@@ -171,6 +213,31 @@ $(function() {
   fluxApp.rehydrate(statePassedFromServer.payload);
 
   // ... bind component to node on page representing the component ...
+});
+```
+
+#### Component load method
+
+If the component depends on data from any store, its `statics.load` method should return a promise
+that evaluates to an object that's going to be an initial state of application stores.
+
+```
+React.createClass({
+  mixins: [fluxApp.mixins.component],
+
+  statics : {
+    load : function(request) {
+      var userData = fluxApp.getActions('user').getData();
+      var item = fluxApp.getActions('item').getDetails({
+        itemId: request.params.itemId
+      });
+
+      return Promise.props({
+        user: userData,
+        item: item
+      });
+    }
+  }
 });
 ```
 

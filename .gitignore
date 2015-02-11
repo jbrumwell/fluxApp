@@ -11,6 +11,9 @@ node_modules/
 # Build dir
 build/
 
+# Docs
+docs/
+
 # Cache
 .haste_cache/
 
