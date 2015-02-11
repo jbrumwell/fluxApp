@@ -169,7 +169,7 @@ React.createClass({
 
 #### Server side
 
-One approach to creating an isomorphic appliction is:
+Our suggested approach to creating an isomorphic application is:
 - Load the component that we have determined is required for this route.
 - Expose a static load method that invokes the actions needed to populate the stores.
 
