@@ -9,3 +9,4 @@ require('../server/actions');
 require('../server/dispatcher');
 require('./stores');
 require('./actions');
+require('./router');
