@@ -15,7 +15,7 @@
   "license": "MIT",
   "dependencies": {
     "bluebird": "^2.9.8",
-    "fluxapp-router": "^0.9.5",
+    "fluxapp-router": "^0.9.6",
     "lodash": "^2.4.1",
     "path-match": "^1.2.2",
     "path-to-regexp": "^1.0.1"
