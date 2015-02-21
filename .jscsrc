@@ -1,8 +1,5 @@
 {
   "esprima": "esprima-fb",
-  "additionalRules": [
-    "node_modules/jscs-jsdoc/lib/rules/*.js"
-  ],
   "excludeFiles": [
     "node_modules/**",
     "client/bower_components/**",
