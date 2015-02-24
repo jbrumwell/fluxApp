@@ -12,6 +12,14 @@ describe('fluxapp', function() {
     });
   });
 
+  it('should have a request method', function() {
+    expect(fluxApp.request).to.be.a('function');
+  });
+
+  it('should have a createContext method', function() {
+    expect(fluxApp.createContext).to.be.a('function');
+  });
+
   it('should have a getStore method', function() {
     expect(fluxApp.getStore).to.be.a('function');
   });
