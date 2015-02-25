@@ -11,7 +11,9 @@
     "isomorphic",
     "flux"
   ],
-  "author": "Jason Brumwell",
+  "author": {
+    "name": "Jason Brumwell"
+  },
   "license": "MIT",
   "dependencies": {
     "bluebird": "^2.9.8",

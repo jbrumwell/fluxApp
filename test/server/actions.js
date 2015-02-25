@@ -40,7 +40,7 @@ describe('actions', function() {
       }
     });
 
-    function listener(result) {
+    function listener(result) {  
       dispatcher.unregister(dispatchId);
       expect(result.actionType).to.equal(fluxApp.getActionType('test.method:failed'));
       expect(result.payload.message).to.equal('sync failure');
