@@ -218,8 +218,11 @@ $(function() {
 
 #### Component load method
 
-If the component depends on data from any store, its `statics.load` method should return a promise
-that evaluates to an object that's going to be an initial state of application stores.
+If the component depends on data from any store, its `statics.load`
+should call actions that result in data populating appropriate stores. A
+promise need to be returned from `statics.load` if its concurrency is a
+result of something else than FluxApp actions. In such a case, the
+promise must be resolved once the data loading had finished.
 
 ```
 React.createClass({
@@ -227,14 +230,9 @@ React.createClass({
 
   statics : {
     load : function(request) {
-      var userData = fluxApp.getActions('user').getData();
-      var item = fluxApp.getActions('item').getDetails({
+      fluxApp.getActions('user').getData();
+      fluxApp.getActions('item').getDetails({
         itemId: request.params.itemId
-      });
-
-      return Promise.props({
-        user: userData,
-        item: item
       });
     }
   }
