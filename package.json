@@ -20,7 +20,8 @@
     "fluxapp-router": "^0.9.7",
     "lodash": "^2.4.1",
     "path-match": "^1.2.2",
-    "path-to-regexp": "^1.0.1"
+    "path-to-regexp": "^1.0.1",
+    "ramda": "^0.10.0"
   },
   "devDependencies": {
     "chai": "^1.10.0",
