@@ -163,14 +163,9 @@ describe('store', function() {
     expect(store.state).to.be.a('object');
     expect(store.state).to.be.empty();
 
-    store.rehydrate(
-      [
-        fluxApp.getActionType('test.data'),
-        {
-          now : 'string'
-        }
-      ]
-    );
+    store.rehydrate({
+      now : 'string'
+    });
 
     expect(store.state).to.be.a('object');
     expect(store.state).to.not.be.empty();
@@ -202,8 +197,10 @@ describe('store', function() {
 
     var actions = fluxApp.getActions('user');
 
-    actions.login('user', 'password').then(function loginResult(result) {
-      store.rehydrate(result);
+    actions.login('user', 'password').then(function loginResult() {
+      store.rehydrate(
+        store.dehydrate()
+      );
 
       expect(store.state).to.have.property('success');
       expect(store.state.success).to.equal(true);
@@ -238,8 +235,10 @@ describe('store', function() {
 
     var actions = fluxApp.getActions('user');
 
-    actions.login('user', 'password').then(function loginResult(result) {
-      store.rehydrate(result);
+    actions.login('user', 'password').then(function loginResult() {
+      store.rehydrate(
+        store.dehydrate()
+      );
 
       expect(store.state).to.have.property('success');
       expect(store.state.success).to.equal(true);

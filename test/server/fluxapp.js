@@ -76,12 +76,9 @@ describe('fluxapp', function() {
 
     fluxApp.rehydrate({
       stores : {
-        name : [
-          fluxApp.getActionType('test.test'),
-          {
-            now : 'string'
-          }
-        ]
+        name : {
+          now : 'string'
+        }
       }
     });
 

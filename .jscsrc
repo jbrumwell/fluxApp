@@ -64,16 +64,5 @@
   "disallowNewlineBeforeBlockStatements": true,
   "validateLineBreaks": "LF",
   "validateQuoteMarks": "'",
-  "validateIndentation": 2,
-  "jsDoc": {
-    "checkParamNames": true,
-    "checkRedundantParams": true,
-    "requireParamTypes": true,
-    "checkReturnTypes": true,
-    "requireReturnTypes": true,
-    "checkTypes": true,
-    "checkRedundantReturns": true,
-    "checkRedundantAccess": true,
-    "leadingUnderscoreAccess": "private"
-  }
+  "validateIndentation": 2
 }
