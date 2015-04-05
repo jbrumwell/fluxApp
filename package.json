@@ -18,7 +18,7 @@
   "dependencies": {
     "bluebird": "^2.9.8",
     "fluxapp-router": "^1.0.3",
-    "iso-fetch": "^0.4.0",
+    "iso-fetch": "^0.4.1",
     "lodash": "^2.4.1",
     "path-match": "^1.2.2",
     "path-to-regexp": "^1.0.1"
