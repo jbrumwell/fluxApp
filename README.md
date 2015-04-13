@@ -186,7 +186,11 @@ function handler(req, reply) {
   var Component = react.createFactory(componentClass);
   var data = normalizeRequestData(req);
 
-  componentClass.load(data).then(function() {
+  var serverParams = {
+    cookie: request.headers.cookie
+  };
+
+  componentClass.load(data, cookie).then(function() {
     var componentHtml = react.renderToString(Component());
     var state = {
         method: req.method,
@@ -216,10 +220,56 @@ $(function() {
 });
 ```
 
+### Setting the platform
+
+In order to give fluxApp the ability to manage your application on the
+client and the server, you have to let it know about the current
+platform. Both the server and client platforms need to be set in files
+that are only imported in one of the contexts and imported before any
+components/actions/stores.
+
+With Hapi, setting the server side platform would look like (with
+`server` an instance of Hapi server):
+
+```
+  fluxApp.setPlatform('node', {
+    fetch: {
+      hapi: { server: server }
+    }
+  }
+```
+
+And on the client a simple `fluxApp.setPatform('browser')` would
+suffice.
+
+#### Parameters of `setPlatform`
+
+The second argument to `fluxApp.setPlatform` initializes `iso-fetch`.
+There are two main keys:
+
+- `fetch` initializes individual transports. In the above case `hapi`
+    transport is initialized with a `server` object, but you can
+    initialize multiple transports at the same time.
+
+- `transports` sets the transports used. By default `hapi` is used on
+    the server and `jquery` on the client, but you can use any supported
+    transport you wish. For instance calling `setPlatform('node', { transports: { server: 'parachutes' } })`
+    would enable a `parachutes` transport on the server side.
+    There are three keys that can be set: `server`, `client` and
+    `current`. Current sets the given transport on both the client and
+    server.
+
+### Fetching data isomorphically
+
+Once the platform is set, `fluxApp.fetch` becomes available. It's a
+simple interface to `iso-fetch` and accepts the same parameters as its
+`request` method.
+
 #### Component load method
 
-If the component depends on data from any store, its `statics.load` method should return a promise
-that evaluates to an object that's going to be an initial state of application stores.
+If the component depends on data from any store, its `statics.load`
+method should return a promise that finishes when the data dispatching
+completes.
 
 ```
 React.createClass({
@@ -232,10 +282,7 @@ React.createClass({
         itemId: request.params.itemId
       });
 
-      return Promise.props({
-        user: userData,
-        item: item
-      });
+      return Promise.all([ userData, item ]);
     }
   }
 });
