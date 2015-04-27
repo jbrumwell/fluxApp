@@ -190,7 +190,7 @@ function handler(req, reply) {
     cookie: request.headers.cookie
   };
 
-  componentClass.load(data, cookie).then(function() {
+  componentClass.load(data, serverParams).then(function() {
     var componentHtml = react.renderToString(Component());
     var state = {
         method: req.method,
