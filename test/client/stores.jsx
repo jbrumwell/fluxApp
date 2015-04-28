@@ -13,14 +13,6 @@ describe('Stores', function() {
     var elem = document.createElement('div');
     var Component = React.createClass(spec);
 
-    if (context) {
-      context = {
-        context: context
-      };
-    } else {
-      context = void 0;
-    }
-
     var ContextWrapper = fluxApp.createWrapper(
       {
         handler: Component
@@ -101,7 +93,9 @@ describe('Stores', function() {
           <h1>Hello</h1>
         );
       }
-    }, context);
+    }, {
+      context: context
+    });
 
     context.getStore('test');
 
@@ -133,7 +127,9 @@ describe('Stores', function() {
           <h1>Hello</h1>
         );
       }
-    }, context);
+    }, {
+      context: context
+    });
 
     context.getStore('test');
 
@@ -150,5 +146,50 @@ describe('Stores', function() {
     store.emitChange();
 
     expect(spy.callCount).to.equal(1);
+  });
+
+  it('should have access to custom context', function() {
+    fluxApp.registerStore('test', {
+      method: function() {
+        this.setState({
+          custom: this.context.custom()
+        });
+      }
+    });
+
+    var spy = sinon.spy();
+    var context = fluxApp.createContext({
+      custom: function() {
+        return true;
+      }
+    });
+    var store = context.getStore('test');
+
+    renderedComponent = renderComponent({
+      mixins : [ fluxApp.mixins.component ],
+
+      flux : {
+        stores : {
+          onTestUpdate : 'test'
+        }
+      },
+
+      onTestUpdate : spy,
+
+      render : function() {
+        return (
+          <h1>Hello</h1>
+        );
+      }
+    }, {
+      context: context,
+    });
+
+    context.getStore('test');
+
+    store.method();
+
+    expect(spy.called).to.equal(true);
+    expect(store.state.custom).to.equal(true);
   });
 });

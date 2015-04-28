@@ -218,10 +218,64 @@ React.createClass({
 Fluxapp is isomorphic by design, this requires a `context` aware implementation.  Fluxapp uses Reacts
 internal `context` and a contextWrapper for passing the context through the application. For a simple example;
 
+Assuming we have setup the context wrapper in the following manor;
+
 ```
 var fluxapp = require('fluxapp');
 var Component = <MyApp />;
-var contextWrapper = fluxapp.createWrapper(Component);
+var contextWrapper = fluxapp.createWrapper(Component, {
+    getCustomContext: function() {
+        ...
+    }
+});
+```
+
+#### Components
+
+```
+React.createClass({
+  mixins: [fluxApp.mixins.component],
+
+  render: function() {
+    var customContext = this.context.fluxApp.getCustomContext();
+
+    return (
+      <h1>Hello Flux</h1>
+    );
+  }
+});
+```
+
+#### Stores
+
+```
+  var fluxApp = require('fluxapp');
+
+  fluxApp.registerStore('namespace', {
+    actions: {
+      onUserLogin: 'user.login',
+    },
+
+    onUserLogin: function(result, actionType) {
+      var customContext = this.context.getCustomContext();
+
+      ...
+    }
+  });
+```
+
+#### Actions
+
+```
+  var fluxApp = require('fluxapp');
+
+  fluxApp.registerActions('namespace', {
+    action: function() {
+      var customContext = this.context.getCustomContext();
+
+      ...
+    }
+  });
 ```
 
 ### Isomorphic applications

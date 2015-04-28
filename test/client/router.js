@@ -3,7 +3,7 @@
 var expect = require('chai').expect;
 var _ = require('lodash');
 
-describe.only('router', function() {
+describe('router', function() {
   var fluxApp = require('../../lib');
 
   fluxApp.registerRoutes([

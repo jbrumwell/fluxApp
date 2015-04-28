@@ -13,14 +13,6 @@ describe('Actions', function() {
     var elem = document.createElement('div');
     var Component = React.createClass(spec);
 
-    if (context) {
-      context = {
-        context: context
-      };
-    } else {
-      context = void 0;
-    }
-
     var ContextWrapper = fluxApp.createWrapper({ handler: Component }, context);
 
     document.body.appendChild(elem);
@@ -36,6 +28,8 @@ describe('Actions', function() {
       React.unmountComponentAtNode(elem);
       document.body.removeChild(elem);
     }
+
+    renderedComponent = null;
 
     fluxApp._stores = {};
     fluxApp._actions = {};
@@ -150,7 +144,9 @@ describe('Actions', function() {
           <h1>Hello</h1>
         );
       }
-    }, context);
+    }, {
+      context: context
+    });
 
     var promise = context.getActions('test').method();
 
@@ -192,7 +188,9 @@ describe('Actions', function() {
           <h1>Hello</h1>
         );
       }
-    }, context);
+    }, {
+      context: context
+    });
 
     context.getActions('test').method();
   });
@@ -225,7 +223,9 @@ describe('Actions', function() {
           <h1>Hello</h1>
         );
       }
-    }, context);
+    }, {
+      context: context
+    });
 
     context.getActions('test').method();
   });
@@ -262,7 +262,27 @@ describe('Actions', function() {
           <h1>Hello</h1>
         );
       }
-    }, context);
+    }, {
+      context: context
+    });
+
+    context.getActions('test').method();
+  });
+
+  it('should have access to custom context methods', function(done) {
+    var spy = sinon.spy();
+    var context = fluxApp.createContext({
+      custom: function() {
+        return true;
+      }
+    });
+
+    fluxApp.registerActions('test', {
+      method: function() {
+        expect(this.context.custom()).to.equal(true);
+        done();
+      }
+    });
 
     context.getActions('test').method();
   });
