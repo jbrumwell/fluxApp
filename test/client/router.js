@@ -1,34 +1,38 @@
 /* global describe, it, beforeEach */
 'use strict';
 var expect = require('chai').expect;
+var _ = require('lodash');
 
-describe('router', function() {
+describe.only('router', function() {
   var fluxApp = require('../../lib');
 
-  fluxApp.setPlatform('browser');
-
-  fluxApp.createRoutes([
+  fluxApp.registerRoutes([
     {
       id : 1,
       path : '/index',
+      handler: _.noop,
       method : 'GET'
     },
     {
       id : 2,
       path : '/index(/?)',
+      handler: _.noop,
       method : 'POST'
     },
     {
       id : 3,
+      handler: _.noop,
       path : '/test/:named/:params'
     },
     {
       id : 4,
+      handler: _.noop,
       path : '/test/optional/:params?'
     },
     {
       id : 5,
       path : '/notFound',
+      handler: _.noop,
       notFound : true
     }
   ]);
@@ -49,11 +53,11 @@ describe('router', function() {
     });
 
     it('should have an createRoute method', function() {
-      expect(fluxApp.createRoute).to.be.a('function');
+      expect(fluxApp.registerRoute).to.be.a('function');
     });
 
-    it('should have an matchRoute method', function() {
-      expect(fluxApp.matchRoute).to.be.a('function');
+    it('should have an createRoutes method', function() {
+      expect(fluxApp.registerRoutes).to.be.a('function');
     });
   });
 
@@ -86,6 +90,12 @@ describe('router', function() {
 
     it('should provide a 404 not found method', function() {
       var route = router.getRoute('/something/doesnt/exist/here');
+
+      expect(route.id).to.equal(5);
+    });
+
+    it('should provide a 404 not found method (By id)', function() {
+      var route = router.getRouteById('not-found');
 
       expect(route.id).to.equal(5);
     });

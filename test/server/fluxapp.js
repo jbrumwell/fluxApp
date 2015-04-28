@@ -12,78 +12,113 @@ describe('fluxapp', function() {
     });
   });
 
-  it('should have a request method', function() {
-    expect(fluxApp.request).to.be.a('function');
-  });
-
   it('should have a createContext method', function() {
     expect(fluxApp.createContext).to.be.a('function');
   });
 
-  it('should have a getStore method', function() {
-    expect(fluxApp.getStore).to.be.a('function');
+  it('should have a getStores method', function() {
+    expect(fluxApp.getStores).to.be.a('function');
   });
 
-  it('should have a getDispatcher method', function() {
-    expect(fluxApp.getDispatcher).to.be.a('function');
+  it('should have a removeStore method', function() {
+    expect(fluxApp.removeStore).to.be.a('function');
   });
 
-  it('should have a createStore method', function() {
-    expect(fluxApp.createStore).to.be.a('function');
+  it('should have a registerStore method', function() {
+    expect(fluxApp.registerStore).to.be.a('function');
   });
 
-  it('should have a createActions method', function() {
-    expect(fluxApp.createActions).to.be.a('function');
+  it('should have a registerStores method', function() {
+    expect(fluxApp.registerStores).to.be.a('function');
   });
 
-  it('should have a debug method', function() {
-    expect(fluxApp.debug).to.be.a('function');
+  it('should have a registerActions method', function() {
+    expect(fluxApp.registerActions).to.be.a('function');
   });
 
   it('should have a getActionType method', function() {
     expect(fluxApp.getActionType).to.be.a('function');
   });
 
-  it('should have a dehydrate method', function() {
-    expect(fluxApp.dehydrate).to.be.a('function');
+  it('should allow us to register a store', function() {
+    fluxApp.registerStore('test');
+
+    expect(fluxApp._stores.test).to.be.a('function');
   });
 
-  it('should have a rehydrate method', function() {
-    expect(fluxApp.rehydrate).to.be.a('function');
-  });
-
-  it('should allow us to register an then retrieve a store', function() {
-    fluxApp.createStore('test');
-
-    var store = fluxApp.getStore('test');
-
-    expect(store).to.be.a('object');
-  });
-
-  it('should rehydrate store state base on action', function() {
-    var store = fluxApp.createStore('name', {
-      actions : {
-        onTest : 'test.test'
-      },
-
-      onTest : function onTest(state) {
-        this.setState(state);
-      }
+  describe('context', function() {
+    var context = fluxApp.createContext({
+      getRouter: function getRouter() {}
     });
 
-    expect(store.state).to.be.a('object');
-    expect(store.state).to.be.empty();
+    it('should allow custom methods', function() {
+      expect(context.getRouter).to.be.a('function');
+    });
 
-    fluxApp.rehydrate({
-      stores : {
-        name : {
-          now : 'string'
+    it('should have a removeActions method', function() {
+      expect(context.removeActions).to.be.a('function');
+    });
+
+    it('should have a getActions method', function() {
+      expect(context.getActions).to.be.a('function');
+    });
+
+    it('should have a getAction method', function() {
+      expect(context.getAction).to.be.a('function');
+    });
+
+    it('should have a removeStore method', function() {
+      expect(context.removeStore).to.be.a('function');
+    });
+
+    it('should have a getStore method', function() {
+      expect(context.getStore).to.be.a('function');
+    });
+
+    it('should have a getDispatcher method', function() {
+      expect(context.getDispatcher).to.be.a('function');
+    });
+
+    it('should have a dehydrate method', function() {
+      expect(context.dehydrate).to.be.a('function');
+    });
+
+    it('should have a rehydrate method', function() {
+      expect(context.rehydrate).to.be.a('function');
+    });
+
+    it('should have a getActionType method', function() {
+      expect(context.getActionType).to.be.a('function');
+    });
+
+    it('should rehydrate store state base on action', function() {
+      fluxApp.registerStore('name', {
+        actions : {
+          onTest : 'test.test'
+        },
+
+        onTest : function onTest(state) {
+          this.setState(state);
         }
-      }
-    });
+      });
 
-    expect(store.state).to.be.a('object');
-    expect(store.state).to.not.be.empty();
-    expect(store.state.now).to.equal('string');
+      var context = fluxApp.createContext();
+      var store = context.getStore('name');
+
+      expect(store.state).to.be.a('object');
+      expect(store.state).to.be.empty();
+
+      context.rehydrate({
+        stores : {
+          name : {
+            now : 'string'
+          }
+        }
+      });
+
+      expect(store.state).to.be.a('object');
+      expect(store.state).to.not.be.empty();
+      expect(store.state.now).to.equal('string');
+    });
   });
 });

@@ -9,11 +9,30 @@ describe('Stores', function() {
 
   var renderedComponent;
 
-  function renderComponent(spec) {
+  function renderComponent(spec, context) {
     var elem = document.createElement('div');
     var Component = React.createClass(spec);
+
+    if (context) {
+      context = {
+        context: context
+      };
+    } else {
+      context = void 0;
+    }
+
+    var ContextWrapper = fluxApp.createWrapper(
+      {
+        handler: Component
+      },
+      context
+    );
+
     document.body.appendChild(elem);
-    return React.render(<Component />, elem);
+
+    return React.render((
+      <ContextWrapper />
+    ), elem);
   }
 
   afterEach(function() {
@@ -43,7 +62,7 @@ describe('Stores', function() {
   });
 
   it('should return a store when getStore is called', function() {
-    fluxApp.createStore('test');
+    fluxApp.registerStore('test');
 
     renderedComponent = renderComponent({
       mixins : [ fluxApp.mixins.component ],
@@ -60,8 +79,11 @@ describe('Stores', function() {
   });
 
   it('should get notified when a store updates', function() {
-    var store = fluxApp.createStore('test');
+    fluxApp.registerStore('test');
+
     var spy = sinon.spy();
+    var context = fluxApp.createContext();
+    var store = context.getStore('test');
 
     renderedComponent = renderComponent({
       mixins : [ fluxApp.mixins.component ],
@@ -79,7 +101,9 @@ describe('Stores', function() {
           <h1>Hello</h1>
         );
       }
-    });
+    }, context);
+
+    context.getStore('test');
 
     store.emitChange();
 
@@ -87,8 +111,11 @@ describe('Stores', function() {
   });
 
   it('should not get notified when a store updates, when unmounted', function() {
-    var store = fluxApp.createStore('test');
+    fluxApp.registerStore('test');
+
     var spy = sinon.spy();
+    var context = fluxApp.createContext();
+    var store = context.getStore('test');
 
     renderedComponent = renderComponent({
       mixins : [ fluxApp.mixins.component ],
@@ -106,7 +133,9 @@ describe('Stores', function() {
           <h1>Hello</h1>
         );
       }
-    });
+    }, context);
+
+    context.getStore('test');
 
     store.emitChange();
 
