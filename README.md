@@ -8,8 +8,8 @@ This module is an effort to ease the development of [flux](http://www.github.com
 
 ### Helper methods
 
-`fluxApp.getRouter`: return an instance of the router
-`fluxApp.getActionType(string)` converts namespaced strings ie: user.login:after to constants USER_LOGIN_AFTER
+* `fluxApp.getRouter`: return an instance of the router
+* `fluxApp.getActionType(string)` converts namespaced strings ie: user.login:after to constants USER_LOGIN_AFTER
 
 ### Routes
 
