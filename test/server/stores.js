@@ -60,12 +60,14 @@ describe('store', function() {
       },
 
       getSomething : function() {
-        return this.state.something;
+        return this.state.get('something');
       }
     });
 
-    expect(store.state).to.be.a('object');
-    expect(store.state.something).to.equal('else');
+    var state = store.getState();
+
+    expect(state).to.be.a('object');
+    expect(state.something).to.equal('else');
   });
 
   it('should expose getter methods provided', function() {
@@ -77,7 +79,7 @@ describe('store', function() {
       },
 
       getSomething : function() {
-        return this.state.something;
+        return this.state.get('something');
       }
     });
 
@@ -100,7 +102,7 @@ describe('store', function() {
       },
 
       getSomething : function() {
-        return this.state.something;
+        return this.state.get('something');
       }
     });
 
@@ -172,7 +174,7 @@ describe('store', function() {
 
     expect(state.myState).to.equal('is');
     expect(state.always).to.equal('there');
-    expect(store.state).to.be.empty();
+    expect(store.getState()).to.be.empty();
   });
 
   it('should rehydrate the store with the supplied state', function() {
@@ -186,16 +188,20 @@ describe('store', function() {
       }
     });
 
-    expect(store.state).to.be.a('object');
-    expect(store.state).to.be.empty();
+    var state = store.getState();
+
+    expect(state).to.be.a('object');
+    expect(state).to.be.empty();
 
     store.rehydrate({
       now : 'string'
     });
 
-    expect(store.state).to.be.a('object');
-    expect(store.state).to.not.be.empty();
-    expect(store.state.now).to.equal('string');
+    state = store.getState();
+
+    expect(state).to.be.a('object');
+    expect(state).to.not.be.empty();
+    expect(state.now).to.equal('string');
   });
 
   it('should rehydrate from action result', function(done) {
@@ -224,8 +230,10 @@ describe('store', function() {
         store.dehydrate()
       );
 
-      expect(store.state).to.have.property('success');
-      expect(store.state.success).to.equal(true);
+      var state = store.getState();
+
+      expect(state).to.have.property('success');
+      expect(state.success).to.equal(true);
       done();
     });
   });
@@ -258,8 +266,10 @@ describe('store', function() {
         store.dehydrate()
       );
 
-      expect(store.state).to.have.property('success');
-      expect(store.state.success).to.equal(true);
+      var state = store.getState();
+
+      expect(state).to.have.property('success');
+      expect(state.success).to.equal(true);
       done();
     });
   });
@@ -312,10 +322,10 @@ describe('store', function() {
         var self = this;
 
         return this.waitFor('testStore').then(function() {
-          var state = self.getStore('testStore').state;
+          var state = self.getStore('testStore').getState();
           expect(state.ran).to.equal(true);
           expect(actionType).to.equal(fluxApp.getActionType('user.login'));
-          expect(result.success).to.equal(true);          
+          expect(result.success).to.equal(true);
           done();
         });
       }

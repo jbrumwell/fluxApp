@@ -104,9 +104,10 @@ describe('fluxapp', function() {
 
       var context = fluxApp.createContext();
       var store = context.getStore('name');
+      var state = store.getState();
 
-      expect(store.state).to.be.a('object');
-      expect(store.state).to.be.empty();
+      expect(state).to.be.a('object');
+      expect(state).to.be.empty();
 
       context.rehydrate({
         stores : {
@@ -116,9 +117,11 @@ describe('fluxapp', function() {
         }
       });
 
-      expect(store.state).to.be.a('object');
-      expect(store.state).to.not.be.empty();
-      expect(store.state.now).to.equal('string');
+      var state = store.getState();
+
+      expect(state).to.be.a('object');
+      expect(state).to.not.be.empty();
+      expect(state.now).to.equal('string');
     });
   });
 });

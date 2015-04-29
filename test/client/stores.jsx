@@ -189,7 +189,9 @@ describe('Stores', function() {
 
     store.method();
 
+    var state = store.getState();
+
     expect(spy.called).to.equal(true);
-    expect(store.state.custom).to.equal(true);
+    expect(state.custom).to.equal(true);
   });
 });
