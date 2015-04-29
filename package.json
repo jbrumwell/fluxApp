@@ -20,6 +20,7 @@
     "fluxapp-router": "^1.0.3",
     "iso-fetch": "^0.4.2",
     "lodash": "^2.4.1",
+    "node-uuid": "^1.4.3",
     "path-match": "^1.2.2",
     "path-to-regexp": "^1.0.1"
   },
