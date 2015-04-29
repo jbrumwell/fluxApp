@@ -166,7 +166,7 @@ React.createClass({
   },
 
   onTestMethodBefore: function() {
-    // fired before test.method event, if the event is async
+    // fired before test.method event
   },
 
   onTestUpdate: function() {
