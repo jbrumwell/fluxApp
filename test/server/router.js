@@ -122,41 +122,41 @@ describe('router', function() {
 
   describe('Generating', function() {
     it('should be able to generate a simple path', function() {
-      var path = router.build(1);
+      var route = router.build(1);
 
-      expect(path).to.equal('/index');
+      expect(route.url).to.equal('/index');
     });
 
     it('should be able to generate a path with optional params', function() {
-      var path = router.build(4);
+      var route = router.build(4);
 
-      expect(path).to.equal('/test/optional');
+      expect(route.url).to.equal('/test/optional');
     });
 
     it('should be able to generate a path with params', function() {
-      var path = router.build(4, {
+      var route = router.build(4, {
         params: {
           params: 'test',
         }
       });
 
-      expect(path).to.equal('/test/optional/test');
+      expect(route.url).to.equal('/test/optional/test');
     });
 
     it('should be able to generate by path', function() {
-      var path = router.build('/index');
+      var route = router.build('/index');
 
-      expect(path).to.equal('/index');
+      expect(route.url).to.equal('/index');
     });
 
     it('should be able to generate by path with params', function() {
-      var path = router.build('/test/here/there');
+      var route = router.build('/test/here/there');
 
-      expect(path).to.equal('/test/here/there');
+      expect(route.url).to.equal('/test/here/there');
     });
 
     it('should be able to generate query parameters', function() {
-      var path = router.build(4, {
+      var route = router.build(4, {
         params: {
           params: 'there',
         },
@@ -166,11 +166,11 @@ describe('router', function() {
         },
       });
 
-      expect(path).to.equal('/test/optional/there?testing=here');
+      expect(route.url).to.equal('/test/optional/there?testing=here');
     });
 
     it('should be able to generate additional query parameters', function() {
-      var path = router.build(6, {
+      var route = router.build(6, {
         params: {
           end: 'query',
         },
@@ -180,11 +180,11 @@ describe('router', function() {
         },
       });
 
-      expect(path).to.equal('/route/with/query?very=cool&cool=indeed');
+      expect(route.url).to.equal('/route/with/query?very=cool&cool=indeed');
     });
 
     it('should be able to generate path with hash', function() {
-      var path = router.build(6, {
+      var route = router.build(6, {
         params: {
           end: 'query',
         },
@@ -196,7 +196,39 @@ describe('router', function() {
         hash: 'myid'
       });
 
-      expect(path).to.equal('/route/with/query?very=cool&cool=indeed#myid');
+      expect(route.url).to.equal('/route/with/query?very=cool&cool=indeed#myid');
+    });
+
+    it('should return false if id does not exist', function() {
+      var route = router.build(10, {
+        params: {
+          end: 'query',
+        },
+
+        query: {
+          cool: 'indeed',
+        },
+
+        hash: 'myid'
+      });
+
+      expect(route).to.equal(false);
+    });
+
+    it('should return false if path does not exist', function() {
+      var route = router.build('/not-here', {
+        params: {
+          end: 'query',
+        },
+
+        query: {
+          cool: 'indeed',
+        },
+
+        hash: 'myid'
+      });
+
+      expect(route).to.equal(false);
     });
   })
 });
