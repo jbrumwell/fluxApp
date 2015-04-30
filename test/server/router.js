@@ -27,7 +27,7 @@ describe('router', function() {
     {
       id : 4,
       handler: _.noop,
-      path : '/test/optional/:params?'
+      path : '/test/optional(/:params)'
     },
     {
       id : 5,
@@ -114,4 +114,26 @@ describe('router', function() {
       expect(route.query.that).to.equal('this');
     });
   });
+
+  describe('Generating', function() {
+    it('should be able to generate a simple path', function() {
+      var path = router.build(1);
+
+      expect(path).to.equal('/index');
+    });
+
+    it('should be able to generate a path with optional params', function() {
+      var path = router.build(4);
+
+      expect(path).to.equal('/test/optional');
+    });
+
+    it('should be able to generate a path with params', function() {
+      var path = router.build(4, {
+        params: 'test'
+      });
+
+      expect(path).to.equal('/test/optional/test');
+    });
+  })
 });

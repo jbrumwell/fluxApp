@@ -17,12 +17,10 @@
   "license": "MIT",
   "dependencies": {
     "bluebird": "^2.9.8",
-    "fluxapp-router": "^1.0.3",
-    "iso-fetch": "^0.4.2",
     "lodash": "^2.4.1",
     "node-uuid": "^1.4.3",
-    "path-match": "^1.2.2",
-    "path-to-regexp": "^1.0.1"
+    "route-parser": "0.0.3",
+    "seamless-immutable": "^2.3.1"
   },
   "devDependencies": {
     "chai": "^1.10.0",

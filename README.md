@@ -27,7 +27,7 @@ A route is comprised of the following sections;
   - Method invoke when this component will be loaded, used for initiating actions needed to populate
     state for the component.
 * path
-  - the path used for matching the route to request, see [path-match](https://github.com/pillarjs/path-match)
+  - the path used for matching the route to request, see [route-parser](https://github.com/rcs/route-parser)
 
 ### Stores
 
@@ -35,6 +35,8 @@ Stores allow us to listen for actions and process their results into the stores 
 state is then emitted to the mounted components that are listening to the store.
 
 Stores are passed a `context`. It is availalbe under `this.context` from within the action method. See Custom Context Methods for more information.
+
+Store state is immutable, utilizing the library [seamless-immutable](https://github.com/rtfeldman/seamless-immutable)
 
 #### Action Binding
 

@@ -60,7 +60,7 @@ describe('store', function() {
       },
 
       getSomething : function() {
-        return this.state.get('something');
+        return this.state.something;
       }
     });
 
@@ -79,7 +79,7 @@ describe('store', function() {
       },
 
       getSomething : function() {
-        return this.state.get('something');
+        return this.state.something;
       }
     });
 
@@ -102,7 +102,7 @@ describe('store', function() {
       },
 
       getSomething : function() {
-        return this.state.get('something');
+        return this.state.something;
       }
     });
 
