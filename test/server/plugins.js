@@ -3,12 +3,34 @@
 
 var expect = require('chai').expect;
 
-describe.only('Plugins', function() {
+describe('Plugins', function() {
   var _fluxApp = require('../../lib');
   var fluxApp;
 
   beforeEach(function() {
     fluxApp = _fluxApp.noConflict();
+  });
+
+  it('should register multiple plugins', function() {
+    fluxApp.registerPlugins({
+      test: {
+        contextMethods: {
+          getTest: function getTest() {}
+        }
+      },
+      two: {
+        contextMethods: {
+          getTwo: function getTest() {}
+        }
+      }
+    });
+
+    var context = fluxApp.createContext();
+
+    expect(fluxApp.hasPlugin('test')).to.equal(true);
+    expect(fluxApp.hasPlugin('two')).to.equal(true);
+    expect(context.getTest).to.be.a('function');
+    expect(context.getTwo).to.be.a('function');
   });
 
   it('should register stores passed', function() {

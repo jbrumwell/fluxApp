@@ -20,6 +20,10 @@ describe('fluxapp', function() {
     expect(fluxApp.registerPlugin).to.be.a('function');
   });
 
+  it('should have a registerPlugins method', function() {
+    expect(fluxApp.registerPlugins).to.be.a('function');
+  });
+
   it('should have a removePlugin method', function() {
     expect(fluxApp.removePlugin).to.be.a('function');
   });
