@@ -11,6 +11,19 @@ describe('Plugins', function() {
     fluxApp = _fluxApp.noConflict();
   });
 
+  it('should be possible to retrieve plugin', function() {
+    var plugin = {
+      stores: {
+        test: {}
+      }
+    };
+
+    fluxApp.registerPlugin('test', plugin);
+
+    expect(fluxApp.getPlugin('test')).to.be.a('object');
+    expect(fluxApp.getPlugin('test')).to.equal(plugin);
+  });
+
   it('should register multiple plugins', function() {
     fluxApp.registerPlugins({
       test: {
