@@ -70,6 +70,56 @@ describe('store', function() {
     expect(state.something).to.equal('else');
   });
 
+  it('should have an immutable state', function() {
+    var store = createStore('exposed', {
+      getInitialState : function() {
+        return {
+          something : 'else'
+        };
+      },
+
+      getSomething : function() {
+        return this.state.something;
+      }
+    });
+
+    var state = store.getState();
+
+    expect(state).to.be.a('object');
+    expect(state.something).to.equal('else');
+    expect(store.state.something).to.equal('else');
+
+    expect(function() {
+      state.something = 'then';
+    }).to.throw(Error);
+
+  });
+
+  it('should be mutable when called with getMutableState', function() {
+    var store = createStore('exposed', {
+      getInitialState : function() {
+        return {
+          something : 'else'
+        };
+      },
+
+      getSomething : function() {
+        return this.state.something;
+      }
+    });
+
+    var state = store.getMutableState();
+
+    expect(state).to.be.a('object');
+    expect(state.something).to.equal('else');
+    expect(store.state.something).to.equal('else');
+
+    state.something = 'then';
+
+    expect(store.state.something).to.equal('else');
+    expect(state.something).to.equal('then');
+  });
+
   it('should expose getter methods provided', function() {
     var store = createStore('exposed', {
       getInitialState : function() {
