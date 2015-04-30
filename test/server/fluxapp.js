@@ -12,6 +12,22 @@ describe('fluxapp', function() {
     });
   });
 
+  it('should have a noConflict method', function() {
+    expect(fluxApp.noConflict).to.be.a('function');
+  });
+
+  it('should have a registerPlugin method', function() {
+    expect(fluxApp.registerPlugin).to.be.a('function');
+  });
+
+  it('should have a removePlugin method', function() {
+    expect(fluxApp.removePlugin).to.be.a('function');
+  });
+
+  it('should have a hasPlugin method', function() {
+    expect(fluxApp.registerPlugin).to.be.a('function');
+  });
+
   it('should have a createContext method', function() {
     expect(fluxApp.createContext).to.be.a('function');
   });
@@ -53,6 +69,10 @@ describe('fluxapp', function() {
 
     it('should allow custom methods', function() {
       expect(context.getRouter).to.be.a('function');
+    });
+
+    it('should have a removeActions method', function() {
+      expect(context.removeActions).to.be.a('function');
     });
 
     it('should have a removeActions method', function() {
