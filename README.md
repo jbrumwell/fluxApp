@@ -292,7 +292,7 @@ fluxApp.registerRoutes(require('./client/routes'));
 
 function handler(req, reply) {
 
-  var route = router.getRoute(req.path, {
+  var route = router.getRouteByUrl(req.path, {
     method: req.method
   });  
   var ContextWrapper = fluxApp.createWrapper(route);
@@ -321,7 +321,7 @@ $(function() {
 
   fluxApp.registerRoutes(require('./client/routes'));
 
-  var route = router.getRoute(window.location.pathname, {
+  var route = router.getRouteByUrl(window.location.pathname, {
     method: statePassedFromServer.method
   });
 

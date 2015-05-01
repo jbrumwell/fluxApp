@@ -48,8 +48,8 @@ describe('router', function() {
     expect(router.addRoute).to.be.a('function');
   });
 
-  it('should have an getRoute method', function() {
-    expect(router.getRoute).to.be.a('function');
+  it('should have an getRouteByUrl method', function() {
+    expect(router.getRouteByUrl).to.be.a('function');
   });
 
   it('should have an getParserById method', function() {
@@ -72,13 +72,13 @@ describe('router', function() {
 
   describe('Matching', function() {
     it('should consider route method if provided', function() {
-      var route = router.getRoute('/index', {
+      var route = router.getRouteByUrl('/index', {
         method : 'GET'
       });
 
       expect(route.id).to.equal(1);
 
-      route = router.getRoute('/index', {
+      route = router.getRouteByUrl('/index', {
         method : 'POST'
       });
 
@@ -86,19 +86,19 @@ describe('router', function() {
     });
 
     it('should accept named parameters', function() {
-      var route = router.getRoute('/test/flux/rools');
+      var route = router.getRouteByUrl('/test/flux/rools');
 
       expect(route.id).to.equal(3);
     });
 
     it('should allow optional param', function() {
-      var route = router.getRoute('/test/optional');
+      var route = router.getRouteByUrl('/test/optional');
 
       expect(route.id).to.equal(4);
     });
 
     it('should provide a 404 not found method', function() {
-      var route = router.getRoute('/something/doesnt/exist/here');
+      var route = router.getRouteByUrl('/something/doesnt/exist/here');
 
       expect(route.id).to.equal(5);
     });
@@ -110,14 +110,14 @@ describe('router', function() {
     });
 
     it('should pull named params from the url', function() {
-      var route = router.getRoute('/test/first/second');
+      var route = router.getRouteByUrl('/test/first/second');
 
       expect(route.params.named).to.equal('first');
       expect(route.params.params).to.equal('second');
     });
 
     it('should parse query params', function() {
-      var route = router.getRoute('/index?something=else&that=this');
+      var route = router.getRouteByUrl('/index?something=else&that=this');
 
       expect(route.query.something).to.equal('else');
       expect(route.query.that).to.equal('this');
@@ -131,7 +131,7 @@ describe('router', function() {
       expect(parser.match).to.be.a('function');
       expect(parser.reverse).to.be.a('function');
     });
-    
+
     it('should be able to generate a simple path', function() {
       var route = router.build(1);
 
