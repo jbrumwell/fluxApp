@@ -52,6 +52,10 @@ describe('router', function() {
     expect(router.getRoute).to.be.a('function');
   });
 
+  it('should have an getParserById method', function() {
+    expect(router.getParserById).to.be.a('function');
+  });
+
   describe('fluxApp', function() {
     it('should have an getRouter method', function() {
       expect(fluxApp.getRouter).to.be.a('function');
@@ -121,6 +125,13 @@ describe('router', function() {
   });
 
   describe('Generating', function() {
+    it('should return the parser', function() {
+      var parser = router.getParserById(1);
+
+      expect(parser.match).to.be.a('function');
+      expect(parser.reverse).to.be.a('function');
+    });
+    
     it('should be able to generate a simple path', function() {
       var route = router.build(1);
 
