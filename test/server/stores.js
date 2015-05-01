@@ -163,7 +163,33 @@ describe('store', function() {
     store.setSomething();
   });
 
+  it('should emit a change event with state and store name', function(done) {
+    var store = createStore('exposed', {
+      getInitialState : function() {
+        return {
+          something : 'else'
+        };
+      },
 
+      setSomething : function() {
+        this.setState({
+          something : 'new'
+        });
+      },
+
+      getSomething : function() {
+        return this.state.something;
+      }
+    });
+
+    store.addChangeListener(function(state, name) {
+      expect(state.something).to.equal('new');
+      expect(name).to.equal('exposed');
+      done();
+    });
+
+    store.setSomething();
+  });
 
   it('should dehydrate to false if unchanged', function() {
     var store = createStore('dehydrate', {
