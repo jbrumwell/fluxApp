@@ -325,11 +325,11 @@ $(function() {
     method: statePassedFromServer.method
   });
 
-  var ContextWrapper = fluxApp.createWrapper(route);
+  var ContextWrapper = fluxApp.createWrapper();
   var context = ContextWrapper.getContext();
 
   context.rehydrate(statePassedFromServer.payload);
 
-  React.render(React.createElement(ContextWrapper), document.getElementById('myAppId'));
+  React.render(React.createElement(ContextWrapper, { handler: route }), document.getElementById('myAppId'));
 });
 ```

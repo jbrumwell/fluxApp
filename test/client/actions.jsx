@@ -13,12 +13,12 @@ describe('Actions', function() {
     var elem = document.createElement('div');
     var Component = React.createClass(spec);
 
-    var ContextWrapper = fluxApp.createWrapper({ handler: Component }, context);
+    var ContextWrapper = fluxApp.createWrapper(context);
 
     document.body.appendChild(elem);
 
     return React.render((
-      <ContextWrapper />
+      <ContextWrapper handler={Component} />
     ), elem);
   }
 

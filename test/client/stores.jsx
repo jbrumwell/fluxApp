@@ -14,16 +14,13 @@ describe('Stores', function() {
     var Component = React.createClass(spec);
 
     var ContextWrapper = fluxApp.createWrapper(
-      {
-        handler: Component
-      },
       context
     );
 
     document.body.appendChild(elem);
 
     return React.render((
-      <ContextWrapper />
+      <ContextWrapper handler={Component} />
     ), elem);
   }
 
