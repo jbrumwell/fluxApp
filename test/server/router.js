@@ -122,6 +122,13 @@ describe('router', function() {
       expect(route.query.something).to.equal('else');
       expect(route.query.that).to.equal('this');
     });
+
+    it('should match full urls', function() {
+      var route = router.getRouteByUrl('https://user@pass:domain.ext/index?something=else&that=this');
+
+      expect(route.query.something).to.equal('else');
+      expect(route.query.that).to.equal('this');
+    });
   });
 
   describe('Generating', function() {
