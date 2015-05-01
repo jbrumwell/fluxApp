@@ -163,6 +163,8 @@ describe('store', function() {
     store.setSomething();
   });
 
+
+
   it('should dehydrate to false if unchanged', function() {
     var store = createStore('dehydrate', {
       getInitialState : function() {
