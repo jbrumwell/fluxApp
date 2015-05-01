@@ -31,7 +31,7 @@ describe('router', function() {
     },
     {
       id : 5,
-      path : '/notFound',
+      path : '/',
       handler: _.noop,
       notFound : true
     },
@@ -39,7 +39,14 @@ describe('router', function() {
       id : 6,
       path : '/route/with/:end?very=cool',
       handler: _.noop
-    }
+    },
+
+    {
+      id : 7,
+      path : '/admin/',
+      handler: _.noop,
+      notFound : true
+    },
   ]);
 
   var router = fluxApp.getRouter();
@@ -98,9 +105,19 @@ describe('router', function() {
     });
 
     it('should provide a 404 not found method', function() {
-      var route = router.getRouteByUrl('/something/doesnt/exist/here');
+      var route = router.getRouteByUrl('/something/doesnt/exist/here?query=query');
 
       expect(route.id).to.equal(5);
+      expect(route.query).to.be.empty();
+      expect(route.params.url).to.equal('/something/doesnt/exist/here?query=query');
+    });
+
+    it('should provide a multiple 404 not found methods', function() {
+      var route = router.getRouteByUrl('/admin/something/doesnt/exist/here?query=query');
+
+      expect(route.id).to.equal(7);
+      expect(route.query).to.be.empty();
+      expect(route.params.url).to.equal('/admin/something/doesnt/exist/here?query=query');
     });
 
     it('should provide a 404 not found method (By id)', function() {
@@ -124,7 +141,7 @@ describe('router', function() {
     });
 
     it('should match full urls', function() {
-      var route = router.getRouteByUrl('https://user@pass:domain.ext/index?something=else&that=this');
+      var route = router.getRouteByUrl('https://user:pass@domain.ext/index?something=else&that=this');
 
       expect(route.query.something).to.equal('else');
       expect(route.query.that).to.equal('this');
