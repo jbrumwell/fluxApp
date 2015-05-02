@@ -71,6 +71,10 @@ describe('fluxapp', function() {
       getRouter: function getRouter() {}
     });
 
+    it('should have a destroy method', function() {
+      expect(context.destroy).to.be.a('function');
+    });
+
     it('should allow custom methods', function() {
       expect(context.getRouter).to.be.a('function');
     });

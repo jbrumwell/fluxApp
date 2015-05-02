@@ -15,6 +15,10 @@ describe('actions', function() {
   }
 
   afterEach(function() {
+    if (context) {
+      context.destroy();
+    }
+
     context = fluxApp.createContext();
     dispatcher = context.getDispatcher();
 

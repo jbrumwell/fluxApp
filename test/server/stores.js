@@ -15,6 +15,10 @@ describe('store', function() {
   }
 
   beforeEach(function() {
+    if (context) {
+      context.destroy();
+    }
+    
     context = fluxApp.createContext();
   })
 
