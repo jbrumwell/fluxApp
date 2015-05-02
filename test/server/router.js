@@ -108,43 +108,18 @@ describe('router', function() {
       var route = router.getRouteByUrl('/something/doesnt/exist/here?query=query');
 
       expect(route.id).to.equal(5);
-      expect(route.query).to.be.empty();
-      expect(route.params.url).to.equal('/something/doesnt/exist/here?query=query');
     });
 
     it('should provide a multiple 404 not found methods', function() {
       var route = router.getRouteByUrl('/admin/something/doesnt/exist/here?query=query');
 
       expect(route.id).to.equal(7);
-      expect(route.query).to.be.empty();
-      expect(route.params.url).to.equal('/admin/something/doesnt/exist/here?query=query');
     });
 
     it('should provide a 404 not found method (By id)', function() {
       var route = router.getRouteById('not-found');
 
       expect(route.id).to.equal(5);
-    });
-
-    it('should pull named params from the url', function() {
-      var route = router.getRouteByUrl('/test/first/second');
-
-      expect(route.params.named).to.equal('first');
-      expect(route.params.params).to.equal('second');
-    });
-
-    it('should parse query params', function() {
-      var route = router.getRouteByUrl('/index?something=else&that=this');
-
-      expect(route.query.something).to.equal('else');
-      expect(route.query.that).to.equal('this');
-    });
-
-    it('should match full urls', function() {
-      var route = router.getRouteByUrl('https://user:pass@domain.ext/index?something=else&that=this');
-
-      expect(route.query.something).to.equal('else');
-      expect(route.query.that).to.equal('this');
     });
   });
 
@@ -154,6 +129,29 @@ describe('router', function() {
 
       expect(parser.match).to.be.a('function');
       expect(parser.reverse).to.be.a('function');
+    });
+
+    it('should pull named params from the url', function() {
+      var request = router.build('/test/first/second');
+
+      expect(request.params.named).to.equal('first');
+      expect(request.params.params).to.equal('second');
+    });
+
+    it('should parse query params', function() {
+      var request = router.build('/index?something=else&that=this');
+
+      expect(request.query.something).to.equal('else');
+      expect(request.query.that).to.equal('this');
+    });
+
+    it('should match full urls', function() {
+      var request = router.build('https://user:pass@domain.ext/index?something=else&that=this');
+
+      console.log(request);
+
+      expect(request.query.something).to.equal('else');
+      expect(request.query.that).to.equal('this');
     });
 
     it('should be able to generate a simple path', function() {
