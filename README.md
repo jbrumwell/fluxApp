@@ -280,7 +280,7 @@ React.createClass({
   });
 ```
 
-### Isomorphic applications
+### Rendering
 
 #### Server Side Example
 
@@ -290,22 +290,24 @@ var router = fluxApp.getRouter();
 
 fluxApp.registerRoutes(require('./client/routes'));
 
+// Example request handler
 function handler(req, reply) {
-
   var route = router.getRouteByUrl(req.path, {
     method: req.method
-  });  
-  var ContextWrapper = fluxApp.createWrapper(route);
+  });
 
-  ContextWrapper.load().then(function(context) {
+  var ContextWrapper = fluxApp.createWrapper();
+  var context = fluxApp.createContext();
+
+  route.loader(route, context).then(function(context) {
     var Component = react.createFactory(ContextWrapper);
-    var componentHtml = react.renderToString(Component());
-    var state = {
-        method: req.method,
-        payload: context.dehydrate()
-    };
 
-    // .. Inject componentHtml and state json into your layout ..
+    var componentHtml = react.renderToString(Component({
+      handler: route.handler,
+      context: context,  
+    }));
+
+    reply(componentHtml);
   });
 }
 ```
@@ -326,10 +328,75 @@ $(function() {
   });
 
   var ContextWrapper = fluxApp.createWrapper();
-  var context = ContextWrapper.getContext();
 
-  context.rehydrate(statePassedFromServer.payload);
+  element = React.createElement(ContextWrapper, {
+    handler: route.handler,
+    context: fluxApp.createContext()
+  });
 
-  React.render(React.createElement(ContextWrapper, { handler: route }), document.getElementById('myAppId'));
+  React.render(element, document.getElementById('myAppId'));
+});
+```
+
+#### Isomorphic Rendering
+
+Server side stays almost the same on isomorphoic rendering, we need to pass the state down to the
+client. This can be done in a number of ways but were going to demonstrate a simple one here;
+
+```
+var fluxApp = require('fluxapp');
+var router = fluxApp.getRouter();
+
+fluxApp.registerRoutes(require('./client/routes'));
+
+// Example request handler
+function handler(req, reply) {
+  var route = router.getRouteByUrl(req.path, {
+    method: req.method
+  });
+
+  var ContextWrapper = fluxApp.createWrapper();
+  var context = fluxApp.createContext();
+
+  route.loader(route, context).then(function(context) {
+    var Component = react.createFactory(ContextWrapper);
+
+    var componentHtml = react.renderToString(Component({
+      handler: route.handler,
+      context: context,  
+    }));
+
+    var state = context.dehydrate();
+
+    reply('<div id="container" data-state=\'' + json.stringify(state) + '\'>'+contextcomponentHtml+'</div>');
+  });
+}
+```
+
+On the client side we would retrieve the state and rehydrate the context
+
+```
+$(function() {
+  var fluxApp = require('fluxapp');
+  var router = fluxApp.getRouter();
+  var container = document.getElementById('app');
+  var state = JSON.stringify(container.attributes.getNamedItem('data-state').value);
+  var context = fluxApp.createContext();
+  var ContextWrapper = fluxApp.createWrapper();
+
+  fluxApp.registerRoutes(require('./client/routes'));
+
+  var route = router.getRouteByUrl(window.location.pathname, {
+    method: statePassedFromServer.method
+  });  
+
+  context.rehydrate(state);
+
+  element = React.createElement(ContextWrapper, {
+    handler: route.handler,
+    context: context
+  });
+
+  React.render(element, document.getElementById('container'));
 });
 ```
