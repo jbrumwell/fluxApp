@@ -6,17 +6,28 @@ var Promise = require('bluebird');
 
 describe('store', function() {
   var fluxApp = require('../../lib');
+  var context = fluxApp.createContext();
 
   function createStore(name, spec) {
-    fluxApp.createStore(name, spec);
+    fluxApp.registerStore(name, spec);
 
-    return fluxApp.getStore(name);
+    return context.getStore(name);
   }
+
+  beforeEach(function() {
+    if (context) {
+      context.destroy();
+    }
+    
+    context = fluxApp.createContext();
+  })
 
   afterEach(function() {
     Object.keys(fluxApp._stores).forEach(function destroyStore(id) {
       fluxApp.removeStore(id);
     });
+
+    fluxApp._actions = {};
   });
 
   it('should have a dehydrate method', function() {
@@ -57,8 +68,60 @@ describe('store', function() {
       }
     });
 
-    expect(store.state).to.be.a('object');
+    var state = store.getState();
+
+    expect(state).to.be.a('object');
+    expect(state.something).to.equal('else');
+  });
+
+  it('should have an immutable state', function() {
+    var store = createStore('exposed', {
+      getInitialState : function() {
+        return {
+          something : 'else'
+        };
+      },
+
+      getSomething : function() {
+        return this.state.something;
+      }
+    });
+
+    var state = store.getState();
+
+    expect(state).to.be.a('object');
+    expect(state.something).to.equal('else');
     expect(store.state.something).to.equal('else');
+
+    expect(function() {
+      state.something = 'then';
+    }).to.throw(Error);
+
+  });
+
+  it('should be mutable when called with getMutableState', function() {
+    var store = createStore('exposed', {
+      getInitialState : function() {
+        return {
+          something : 'else'
+        };
+      },
+
+      getSomething : function() {
+        return this.state.something;
+      }
+    });
+
+    var state = store.getMutableState();
+
+    expect(state).to.be.a('object');
+    expect(state.something).to.equal('else');
+    expect(store.state.something).to.equal('else');
+
+    state.something = 'then';
+
+    expect(store.state.something).to.equal('else');
+    expect(state.something).to.equal('then');
   });
 
   it('should expose getter methods provided', function() {
@@ -104,6 +167,49 @@ describe('store', function() {
     store.setSomething();
   });
 
+  it('should emit a change event with state and store name', function(done) {
+    var store = createStore('exposed', {
+      getInitialState : function() {
+        return {
+          something : 'else'
+        };
+      },
+
+      setSomething : function() {
+        this.setState({
+          something : 'new'
+        });
+      },
+
+      getSomething : function() {
+        return this.state.something;
+      }
+    });
+
+    store.addChangeListener(function(state, name) {
+      expect(state.something).to.equal('new');
+      expect(name).to.equal('exposed');
+      done();
+    });
+
+    store.setSomething();
+  });
+
+  it('should dehydrate to false if unchanged', function() {
+    var store = createStore('dehydrate', {
+      getInitialState : function() {
+        return {
+          myState : 'is',
+          always : 'here'
+        };
+      }
+    });
+
+    var state = store.dehydrate();
+
+    expect(state).to.equal(false);
+  });
+
   it('should dehydrate its state', function() {
     var store = createStore('dehydrate', {
       getInitialState : function() {
@@ -120,10 +226,12 @@ describe('store', function() {
       }
     });
 
+    store.toThere();
+
     var state = store.dehydrate();
 
     expect(state.myState).to.equal('is');
-    expect(state.always).to.equal('here');
+    expect(state.always).to.equal('there');
   });
 
   it('once dehyrated store states should be empty', function() {
@@ -142,11 +250,13 @@ describe('store', function() {
       }
     });
 
+    store.toThere();
+
     var state = store.dehydrate();
 
     expect(state.myState).to.equal('is');
-    expect(state.always).to.equal('here');
-    expect(store.state).to.be.empty();
+    expect(state.always).to.equal('there');
+    expect(store.getState()).to.be.empty();
   });
 
   it('should rehydrate the store with the supplied state', function() {
@@ -160,16 +270,20 @@ describe('store', function() {
       }
     });
 
-    expect(store.state).to.be.a('object');
-    expect(store.state).to.be.empty();
+    var state = store.getState();
+
+    expect(state).to.be.a('object');
+    expect(state).to.be.empty();
 
     store.rehydrate({
       now : 'string'
     });
 
-    expect(store.state).to.be.a('object');
-    expect(store.state).to.not.be.empty();
-    expect(store.state.now).to.equal('string');
+    state = store.getState();
+
+    expect(state).to.be.a('object');
+    expect(state).to.not.be.empty();
+    expect(state.now).to.equal('string');
   });
 
   it('should rehydrate from action result', function(done) {
@@ -179,15 +293,11 @@ describe('store', function() {
       },
 
       onUserLogin : function(result, actionType) {
-        fluxApp._actions = {};
-        // jshint camelcase:false
-        fluxApp.dispatcher.$Dispatcher_callbacks = {};
-        // jshint camelcase:true
         this.setState(result);
       }
     });
 
-    fluxApp.createActions('user', {
+    fluxApp.registerActions('user', {
       login : function() {
         return {
           success : true
@@ -195,15 +305,17 @@ describe('store', function() {
       }
     });
 
-    var actions = fluxApp.getActions('user');
+    var actions = context.getActions('user');
 
     actions.login('user', 'password').then(function loginResult() {
       store.rehydrate(
         store.dehydrate()
       );
 
-      expect(store.state).to.have.property('success');
-      expect(store.state.success).to.equal(true);
+      var state = store.getState();
+
+      expect(state).to.have.property('success');
+      expect(state.success).to.equal(true);
       done();
     });
   });
@@ -215,15 +327,11 @@ describe('store', function() {
       },
 
       onUserLogin : function(result, actionType) {
-        fluxApp._actions = {};
-        // jshint camelcase:false
-        fluxApp.dispatcher.$Dispatcher_callbacks = {};
-        // jshint camelcase:true
         this.setState(result);
       }
     });
 
-    fluxApp.createActions('user', {
+    fluxApp.registerActions('user', {
       login : function() {
         return new Promise(function(resolve) {
           setImmediate(resolve.bind(resolve, {
@@ -233,15 +341,17 @@ describe('store', function() {
       }
     });
 
-    var actions = fluxApp.getActions('user');
+    var actions = context.getActions('user');
 
     actions.login('user', 'password').then(function loginResult() {
       store.rehydrate(
         store.dehydrate()
       );
 
-      expect(store.state).to.have.property('success');
-      expect(store.state.success).to.equal(true);
+      var state = store.getState();
+
+      expect(state).to.have.property('success');
+      expect(state.success).to.equal(true);
       done();
     });
   });
@@ -255,15 +365,11 @@ describe('store', function() {
       onUserLogin : function(result, actionType) {
         expect(actionType).to.equal(fluxApp.getActionType('user.login'));
         expect(result.success).to.equal(true);
-        fluxApp._actions = {};
-        // jshint camelcase:false
-        fluxApp.dispatcher.$Dispatcher_callbacks = {};
-        // jshint camelcase:true
         done();
       }
     });
 
-    fluxApp.createActions('user', {
+    fluxApp.registerActions('user', {
       login : function() {
         return {
           success : true
@@ -271,7 +377,7 @@ describe('store', function() {
       }
     });
 
-    var actions = fluxApp.getActions('user');
+    var actions = context.getActions('user');
 
     actions.login('user', 'password');
   });
@@ -298,20 +404,16 @@ describe('store', function() {
         var self = this;
 
         return this.waitFor('testStore').then(function() {
-          var state = self.getStore('testStore').state;
+          var state = self.getStore('testStore').getState();
           expect(state.ran).to.equal(true);
           expect(actionType).to.equal(fluxApp.getActionType('user.login'));
           expect(result.success).to.equal(true);
-          fluxApp._actions = {};
-          // jshint camelcase:false
-          fluxApp.dispatcher.$Dispatcher_callbacks = {};
-          // jshint camelcase:true
           done();
         });
       }
     });
 
-    fluxApp.createActions('user', {
+    fluxApp.registerActions('user', {
       login : function() {
         return {
           success : true
@@ -319,7 +421,7 @@ describe('store', function() {
       }
     });
 
-    var actions = fluxApp.getActions('user');
+    var actions = context.getActions('user');
 
     actions.login('user', 'password');
   });

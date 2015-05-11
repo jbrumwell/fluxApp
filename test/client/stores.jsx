@@ -9,11 +9,18 @@ describe('Stores', function() {
 
   var renderedComponent;
 
-  function renderComponent(spec) {
+  function renderComponent(spec, context) {
     var elem = document.createElement('div');
     var Component = React.createClass(spec);
+
+    var ContextWrapper = fluxApp.createWrapper();
+    var context = context && context.context ? context.context : fluxApp.createContext(context);
+
     document.body.appendChild(elem);
-    return React.render(<Component />, elem);
+
+    return React.render((
+      <ContextWrapper handler={Component} context={context} />
+    ), elem);
   }
 
   afterEach(function() {
@@ -43,7 +50,7 @@ describe('Stores', function() {
   });
 
   it('should return a store when getStore is called', function() {
-    fluxApp.createStore('test');
+    fluxApp.registerStore('test');
 
     renderedComponent = renderComponent({
       mixins : [ fluxApp.mixins.component ],
@@ -60,8 +67,11 @@ describe('Stores', function() {
   });
 
   it('should get notified when a store updates', function() {
-    var store = fluxApp.createStore('test');
+    fluxApp.registerStore('test');
+
     var spy = sinon.spy();
+    var context = fluxApp.createContext();
+    var store = context.getStore('test');
 
     renderedComponent = renderComponent({
       mixins : [ fluxApp.mixins.component ],
@@ -79,7 +89,11 @@ describe('Stores', function() {
           <h1>Hello</h1>
         );
       }
+    }, {
+      context: context
     });
+
+    context.getStore('test');
 
     store.emitChange();
 
@@ -87,8 +101,11 @@ describe('Stores', function() {
   });
 
   it('should not get notified when a store updates, when unmounted', function() {
-    var store = fluxApp.createStore('test');
+    fluxApp.registerStore('test');
+
     var spy = sinon.spy();
+    var context = fluxApp.createContext();
+    var store = context.getStore('test');
 
     renderedComponent = renderComponent({
       mixins : [ fluxApp.mixins.component ],
@@ -106,7 +123,11 @@ describe('Stores', function() {
           <h1>Hello</h1>
         );
       }
+    }, {
+      context: context
     });
+
+    context.getStore('test');
 
     store.emitChange();
 
@@ -121,5 +142,52 @@ describe('Stores', function() {
     store.emitChange();
 
     expect(spy.callCount).to.equal(1);
+  });
+
+  it('should have access to custom context', function() {
+    fluxApp.registerStore('test', {
+      method: function() {
+        this.setState({
+          custom: this.context.custom()
+        });
+      }
+    });
+
+    var spy = sinon.spy();
+    var context = fluxApp.createContext({
+      custom: function() {
+        return true;
+      }
+    });
+    var store = context.getStore('test');
+
+    renderedComponent = renderComponent({
+      mixins : [ fluxApp.mixins.component ],
+
+      flux : {
+        stores : {
+          onTestUpdate : 'test'
+        }
+      },
+
+      onTestUpdate : spy,
+
+      render : function() {
+        return (
+          <h1>Hello</h1>
+        );
+      }
+    }, {
+      context: context,
+    });
+
+    context.getStore('test');
+
+    store.method();
+
+    var state = store.getState();
+
+    expect(spy.called).to.equal(true);
+    expect(state.custom).to.equal(true);
   });
 });

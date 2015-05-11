@@ -6,26 +6,59 @@ This module is an effort to ease the development of [flux](http://www.github.com
 
 `npm install fluxapp --save`
 
+### Helper methods
+
+* `fluxApp.getRouter`: return an instance of the router
+* `fluxApp.getActionType(string)` converts namespaced strings ie: user.login:after to constants USER_LOGIN_AFTER
+
+### Routes
+
+Routes are registered with fluxApp using the `fluxApp.registerRoute(<ROUTE>)` or with an array of routes `fluxApp.registerRoutes(<Routes>)`
+
+A route is comprised of the following sections;
+
+* id
+  - can be used with `router.getById(id);`
+* method
+  - Http method supported by the route, or array of methods
+* handler
+  - React component that handles this route
+* loader
+  - Method invoke when this component will be loaded, used for initiating actions needed to populate
+    state for the component.
+* path
+  - the path used for matching the route to request, see [route-parser](https://github.com/rcs/route-parser)
+
 ### Stores
+
+Stores allow us to listen for actions and process their results into the stores internal state. This
+state is then emitted to the mounted components that are listening to the store.
+
+Stores are passed a `context`. It is availalbe under `this.context` from within the action method. See Custom Context Methods for more information.
+
+Store state is immutable, utilizing the library [seamless-immutable](https://github.com/rtfeldman/seamless-immutable)
 
 #### Action Binding
 
 fluxApp stores can bind to actions that are dispatched, the example below will call `onUserLogin`
-on a successful user.login action
+on a successful user.login action and `onUserLoginFailed` if the action fails.
 
 ```
   var fluxApp = require('fluxapp');
 
-  fluxApp.createStore('namespace', {
-    mixins: [fluxApp.mixins.component],
-
+  fluxApp.registerStore('namespace', {
     actions: {
-      onUserLogin: 'user.login'
+      onUserLogin: 'user.login',
+      onUserLoginFailed: 'user.login:failed'
     },
 
     onUserLogin: function(result, actionType) {
       // process data from the user.login event
-    }
+    },
+
+    onUserLoginFailed: function(err, actionType) {
+
+    },
   });
 ```
 
@@ -33,30 +66,52 @@ One store function can bind to multiple actions. In the following example
 `onUserStateChange` is called both when user logs in and out
 
 ```
-  ...
+var fluxApp = require('fluxapp');
+
+fluxApp.registerStore('namespace', {
   actions: {
     onUserStateChange: ['user.login', 'user.logout']
   },
 
   onUserStateChange: function(result, actionType) {
-  ...
-
+    if (fluxApp.getActionType('user.login') === actionType) {
+        ...
+    }
+  },
+});
 ```
 
-### Actions
-
-Actions are namespaced and allow for both async and sync actions. Sync actions only dispatch their
-action event, whereas async functions will dispatch both a before and after event.
-
-Sync actions emit sync events, async events emit a sync before event, main action event
-when the promise resolves and an after event afterwards.
-
-If a failure is thrown, a failed event is emitted async/sync depending on the state of the promise
+It's possible to easily bind to before/after/failed events from inside the stores, consider the following:
 
 ```
   var fluxApp = require('fluxapp');
 
-  fluxApp.createActions('namespace', {
+  fluxApp.registerStore('namespace', {
+    actions: {
+      onFailedLogin: 'user.login:failed',
+      onBeforeLogin: 'user.login:before'
+    },
+
+    onFailedLogin: function(err, actionType) {
+      // Called when login fails
+    },
+
+    onBeforeLogin: function(result, actionType) {
+      // Called before executing the login action
+    }
+  });
+```
+
+### Actions
+
+Actions are namespaced and allow for both async and sync actions. They are also passed a `context`. It is availalbe under `this.context` from within the action method. See Custom Context Methods for more information.
+
+Actions dispatch both a before and after event. If a failure is thrown, a failed event is emitted.
+
+```
+  var fluxApp = require('fluxapp');
+
+  fluxApp.registerActions('namespace', {
     sync: function() {
         return 'sync';
     },
@@ -81,38 +136,7 @@ If a failure is thrown, a failed event is emitted async/sync depending on the st
       });
     }
   });
-
-  var actions = fluxApp.getActions('namespace');
-
-  actions.sync();
 ```
-
-#### Binding to side events
-
-It's possible to easily bind to before/after/failed events from inside the stores, consider the following:
-
-```
-  var fluxApp = require('fluxapp');
-
-  fluxApp.createStore('namespace', {
-    mixins: [fluxApp.mixins.component],
-
-    actions: {
-      onFailedLogin: 'user.login:failed',
-      onBeforeLogin: 'user.login:before'
-    },
-
-    onFailedLogin: function(result, actionType) {
-      // Called when login fails
-    },
-
-    onBeforeLogin: function(result, actionType) {
-      // Called before executing the login action
-    }
-  });
-```
-
-
 
 ### Component Mixin
 
@@ -144,7 +168,7 @@ React.createClass({
   },
 
   onTestMethodBefore: function() {
-    // fired before test.method event, if the event is async
+    // fired before test.method event
   },
 
   onTestUpdate: function() {
@@ -165,71 +189,21 @@ React.createClass({
 });
 ```
 
-### Isomorphic applications
-
-#### Server side
-
-Our suggested approach to creating an isomorphic application is:
-- Load the component that we have determined is required for this route.
-- Expose a static load method that invokes the actions needed to populate the stores.
-
-```
-var fluxApp = require('fluxapp');
-
-fluxApp.createRoutes(require('./client/routes'));
-
-function handler(req, reply) {
-
-  var componentClass = fluxApp.matchRoute(req.path, {
-    method: req.method
-  });
-  var Component = react.createFactory(componentClass);
-  var data = normalizeRequestData(req);
-
-  componentClass.load(data).then(function() {
-    var componentHtml = react.renderToString(Component());
-    var state = {
-        method: req.method,
-        payload: fluxApp.dehydrate()
-    };
-
-    // .. Inject componentHtml and state json into your layout ..
-  });
-}
-```
-
-#### Client side
-
-```
-$(function() {
-  var fluxApp = require('fluxapp');
-
-  fluxApp.createRoutes(require('./routes'));
-
-  var component = fluxApp.matchRoute(window.location.pathname, {
-    method: statePassedFromServer.method
-  });
-
-  fluxApp.rehydrate(statePassedFromServer.payload);
-
-  // ... bind component to node on page representing the component ...
-});
-```
-
 #### Component load method
 
 If the component depends on data from any store, its `statics.load` method should return a promise
-that evaluates to an object that's going to be an initial state of application stores.
+that evaluates to an object that's going to be an initial state of application stores. Alternatively
+load methods can be registered on the `Route` under the `loader` property.
 
 ```
 React.createClass({
   mixins: [fluxApp.mixins.component],
 
   statics : {
-    load : function(request) {
-      var userData = fluxApp.getActions('user').getData();
-      var item = fluxApp.getActions('item').getDetails({
-        itemId: request.params.itemId
+    load : function(route, context) {
+      var userData = context.getActions('user').getData();
+      var item = context.getActions('item').getDetails({
+        itemId: route.params.itemId
       });
 
       return Promise.props({
@@ -241,8 +215,188 @@ React.createClass({
 });
 ```
 
-### Helper methods
+### Custom Context Methods
 
-`fluxApp.getDispatcher`: return an instance of the flux dispatcher
-`fluxApp.getRouter`: return an instance of the router
-`fluxApp.getActionType(string)` converts namespaced strings ie: user.login:after to constants USER_LOGIN_AFTER
+Fluxapp is isomorphic by design, this requires a `context` aware implementation.  Fluxapp uses Reacts
+internal `context` and a contextWrapper for passing the context through the application. For a simple example;
+
+Assuming we have setup the context wrapper in the following manor;
+
+```
+var fluxapp = require('fluxapp');
+var Component = <MyApp />;
+var contextWrapper = fluxapp.createWrapper(Component, {
+    getCustomContext: function() {
+        ...
+    }
+});
+```
+
+#### Components
+
+```
+React.createClass({
+  mixins: [fluxApp.mixins.component],
+
+  render: function() {
+    var customContext = this.context.fluxApp.getCustomContext();
+
+    return (
+      <h1>Hello Flux</h1>
+    );
+  }
+});
+```
+
+#### Stores
+
+```
+  var fluxApp = require('fluxapp');
+
+  fluxApp.registerStore('namespace', {
+    actions: {
+      onUserLogin: 'user.login',
+    },
+
+    onUserLogin: function(result, actionType) {
+      var customContext = this.context.getCustomContext();
+
+      ...
+    }
+  });
+```
+
+#### Actions
+
+```
+  var fluxApp = require('fluxapp');
+
+  fluxApp.registerActions('namespace', {
+    action: function() {
+      var customContext = this.context.getCustomContext();
+
+      ...
+    }
+  });
+```
+
+### Rendering
+
+#### Server Side Example
+
+```
+var fluxApp = require('fluxapp');
+var router = fluxApp.getRouter();
+
+fluxApp.registerRoutes(require('./client/routes'));
+
+// Example request handler
+function handler(req, reply) {
+  var route = router.getRouteByUrl(req.path, {
+    method: req.method
+  });
+
+  var ContextWrapper = fluxApp.createWrapper();
+  var context = fluxApp.createContext();
+
+  route.loader(route, context).then(function(context) {
+    var Component = react.createFactory(ContextWrapper);
+
+    var componentHtml = react.renderToString(Component({
+      handler: route.handler,
+      context: context,  
+    }));
+
+    reply(componentHtml);
+  });
+}
+```
+
+#### Client side
+
+Assuming `statePassedFromServer` is the state mentioned in the server side example;
+
+```
+$(function() {
+  var fluxApp = require('fluxapp');
+  var router = fluxApp.getRouter();
+
+  fluxApp.registerRoutes(require('./client/routes'));
+
+  var route = router.getRouteByUrl(window.location.pathname, {
+    method: statePassedFromServer.method
+  });
+
+  var ContextWrapper = fluxApp.createWrapper();
+
+  element = React.createElement(ContextWrapper, {
+    handler: route.handler,
+    context: fluxApp.createContext()
+  });
+
+  React.render(element, document.getElementById('myAppId'));
+});
+```
+
+#### Isomorphic Rendering
+
+Server side stays almost the same on isomorphoic rendering, we need to pass the state down to the
+client. This can be done in a number of ways but were going to demonstrate a simple one here;
+
+```
+var fluxApp = require('fluxapp');
+var router = fluxApp.getRouter();
+
+fluxApp.registerRoutes(require('./client/routes'));
+
+// Example request handler
+function handler(req, reply) {
+  var route = router.getRouteByUrl(req.path, {
+    method: req.method
+  });
+
+  var ContextWrapper = fluxApp.createWrapper();
+  var context = fluxApp.createContext();
+
+  route.loader(route, context).then(function(context) {
+    var Component = react.createFactory(ContextWrapper);
+
+    var componentHtml = react.renderToString(Component({
+      handler: route.handler,
+      context: context,  
+    }));
+
+    var state = context.dehydrate();
+
+    reply('<div id="container" data-state=\'' + json.stringify(state) + '\'>'+contextcomponentHtml+'</div>');
+  });
+}
+```
+
+On the client side we would retrieve the state and rehydrate the context
+
+```
+$(function() {
+  var fluxApp = require('fluxapp');
+  var router = fluxApp.getRouter();
+  var container = document.getElementById('app');
+  var state = JSON.stringify(container.attributes.getNamedItem('data-state').value);
+  var context = fluxApp.createContext();
+  var ContextWrapper = fluxApp.createWrapper();
+
+  fluxApp.registerRoutes(require('./client/routes'));
+
+  var route = router.getRouteByUrl(window.location.pathname, {
+    method: statePassedFromServer.method
+  });  
+
+  context.rehydrate(state);
+
+  element = React.createElement(ContextWrapper, {
+    handler: route.handler,
+    context: context
+  });
+
+  React.render(element, document.getElementById('container'));
+});
+```

@@ -2,18 +2,25 @@
 'use strict';
 
 // env setup
-var React = require('react/addons');
+var React = require('react');
 var fluxApp = require('../../lib');
 
 describe('Actions', function() {
 
   var renderedComponent;
 
-  function renderComponent(spec) {
+  function renderComponent(spec, context) {
     var elem = document.createElement('div');
     var Component = React.createClass(spec);
+
+    var ContextWrapper = fluxApp.createWrapper();
+    var context = context && context.context ? context.context : fluxApp.createContext(context);
+
     document.body.appendChild(elem);
-    return React.render(<Component />, elem);
+
+    return React.render((
+      <ContextWrapper handler={Component} context={context} />
+    ), elem);
   }
 
   afterEach(function() {
@@ -22,6 +29,8 @@ describe('Actions', function() {
       React.unmountComponentAtNode(elem);
       document.body.removeChild(elem);
     }
+
+    renderedComponent = null;
 
     fluxApp._stores = {};
     fluxApp._actions = {};
@@ -57,7 +66,7 @@ describe('Actions', function() {
 
   describe('getActions', function() {
     it('should return the actions registered', function() {
-      fluxApp.createActions('testing', {
+      fluxApp.registerActions('testing', {
         methodA : function() {},
         methodB : function() {}
       });
@@ -83,7 +92,7 @@ describe('Actions', function() {
 
   describe('getAction', function() {
     it('should return the action requested', function() {
-      fluxApp.createActions('testing', {
+      fluxApp.registerActions('testing', {
         methodA : function() {},
         methodB : function() {}
       });
@@ -108,8 +117,9 @@ describe('Actions', function() {
 
   it('should get notified when a before action occurs', function(done) {
     var spy = sinon.spy();
+    var context = fluxApp.createContext();
 
-    fluxApp.createActions('test', {
+    fluxApp.registerActions('test', {
       method : function() {
         return new Promise(function(resolve){
           setImmediate(function() {
@@ -135,9 +145,11 @@ describe('Actions', function() {
           <h1>Hello</h1>
         );
       }
+    }, {
+      context: context
     });
 
-    var promise = fluxApp.getActions('test').method();
+    var promise = context.getActions('test').method();
 
     promise.then(function() {
       expect(spy.called).to.equal(true);
@@ -147,8 +159,9 @@ describe('Actions', function() {
 
   it('should get notified when a after action occurs', function(done) {
     var spy = sinon.spy();
+    var context = fluxApp.createContext();
 
-    fluxApp.createActions('test', {
+    fluxApp.registerActions('test', {
       method: function() {
         return new Promise(function(resolve){
           setImmediate(function() {
@@ -176,15 +189,18 @@ describe('Actions', function() {
           <h1>Hello</h1>
         );
       }
+    }, {
+      context: context
     });
 
-    fluxApp.getActions('test').method();
+    context.getActions('test').method();
   });
 
   it('should get notified when failed action occurs (SYNC)', function(done) {
     var spy = sinon.spy();
+    var context = fluxApp.createContext();
 
-    fluxApp.createActions('test', {
+    fluxApp.registerActions('test', {
       method: function() {
         throw new Error('sync failed');
       }
@@ -208,15 +224,18 @@ describe('Actions', function() {
           <h1>Hello</h1>
         );
       }
+    }, {
+      context: context
     });
 
-    fluxApp.getActions('test').method();
+    context.getActions('test').method();
   });
 
   it('should get notified when failed action occurs', function(done) {
     var spy = sinon.spy();
+    var context = fluxApp.createContext();
 
-    fluxApp.createActions('test', {
+    fluxApp.registerActions('test', {
       method: function() {
         return new Promise(function(resolve, reject){
           setImmediate(function() {
@@ -244,8 +263,28 @@ describe('Actions', function() {
           <h1>Hello</h1>
         );
       }
+    }, {
+      context: context
     });
 
-    fluxApp.getActions('test').method();
+    context.getActions('test').method();
+  });
+
+  it('should have access to custom context methods', function(done) {
+    var spy = sinon.spy();
+    var context = fluxApp.createContext({
+      custom: function() {
+        return true;
+      }
+    });
+
+    fluxApp.registerActions('test', {
+      method: function() {
+        expect(this.context.custom()).to.equal(true);
+        done();
+      }
+    });
+
+    context.getActions('test').method();
   });
 });

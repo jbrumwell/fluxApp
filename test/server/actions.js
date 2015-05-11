@@ -4,16 +4,24 @@ var expect = require('chai').expect;
 
 describe('actions', function() {
   var fluxApp = require('../../lib');
-  var dispatcher = fluxApp.getDispatcher();
+  var context = fluxApp.createContext();
   var Promise = require('bluebird');
+  var dispatcher;
 
-  function createActions(name, spec, tag) {
-    fluxApp.createActions(name, spec, tag);
+  function createActions(name, spec) {
+    fluxApp.registerActions(name, spec);
 
-    return fluxApp.getActions(name);
+    return context.getActions(name);
   }
 
   afterEach(function() {
+    if (context) {
+      context.destroy();
+    }
+
+    context = fluxApp.createContext();
+    dispatcher = context.getDispatcher();
+
     fluxApp._actions = {};
   });
 
@@ -33,6 +41,8 @@ describe('actions', function() {
 
   it('should emit the failed event when sync', function(done) {
     var dispatchId;
+    var failedType = fluxApp.getActionType('test.method:failed');
+    var beforeType = fluxApp.getActionType('test.method:before');
 
     var actions = createActions('test', {
       method : function() {
@@ -40,11 +50,15 @@ describe('actions', function() {
       }
     });
 
-    function listener(result) {  
-      dispatcher.unregister(dispatchId);
-      expect(result.actionType).to.equal(fluxApp.getActionType('test.method:failed'));
-      expect(result.payload.message).to.equal('sync failure');
-      done();
+    function listener(result) {
+      if (result.actionType === failedType) {
+        dispatcher.unregister(dispatchId);
+        expect(result.actionType).to.equal(failedType);
+        expect(result.payload.message).to.equal('sync failure');
+        done();
+      } else {
+        expect(result.actionType).to.equal(beforeType);
+      }
     }
 
     dispatchId = dispatcher.register(listener);
@@ -61,11 +75,18 @@ describe('actions', function() {
       }
     });
 
+    var methodType = fluxApp.getActionType('test.method');
+    var beforeType = fluxApp.getActionType('test.method:before');
+
     function listener(result) {
-      dispatcher.unregister(dispatchId);
-      expect(result.actionType).to.equal(fluxApp.getActionType('test.method'));
-      expect(result.payload).to.equal('sync');
-      done();
+      if (result.actionType === methodType) {
+        dispatcher.unregister(dispatchId);
+        expect(result.actionType).to.equal(methodType);
+        expect(result.payload).to.equal('sync');
+        done();
+      } else {
+        expect(result.actionType).to.equal(beforeType);
+      }
     }
 
     dispatchId = dispatcher.register(listener);
@@ -181,7 +202,7 @@ describe('actions', function() {
   });
 
   it('should receive the parameters passed by component', function(done) {
-    fluxApp.createActions('test', {
+    fluxApp.registerActions('test', {
       method : function(a, b) {
         expect(a).to.equal('a');
         expect(b).to.equal('b');
@@ -189,11 +210,11 @@ describe('actions', function() {
       }
     });
 
-    fluxApp.getActions('test').method('a', 'b');
+    context.getActions('test').method('a', 'b');
   });
 
   it('should resolve to an object of actionType = actionResponse', function(done) {
-    fluxApp.createActions('test', {
+    fluxApp.registerActions('test', {
       method : function(a, b) {
         expect(a).to.equal('a');
         expect(b).to.equal('b');
@@ -201,7 +222,7 @@ describe('actions', function() {
       }
     });
 
-    fluxApp.getActions('test').method('a', 'b').then(function(result) {
+    context.getActions('test').method('a', 'b').then(function(result) {
       var actionType = fluxApp.getActionType('test.method');
 
       expect(result).to.be.a('array');
@@ -214,7 +235,7 @@ describe('actions', function() {
   });
 
   it('should resolve to an object of actionType = actionResponse async', function(done) {
-    fluxApp.createActions('test', {
+    fluxApp.registerActions('test', {
       method : function(a, b) {
         expect(a).to.equal('a');
         expect(b).to.equal('b');
@@ -224,7 +245,7 @@ describe('actions', function() {
       }
     });
 
-    fluxApp.getActions('test').method('a', 'b').then(function(result) {
+    context.getActions('test').method('a', 'b').then(function(result) {
       var actionType = fluxApp.getActionType('test.method');
 
       expect(result).to.be.a('array');
