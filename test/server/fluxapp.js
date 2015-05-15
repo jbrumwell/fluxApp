@@ -151,5 +151,47 @@ describe('fluxapp', function() {
       expect(state).to.not.be.empty();
       expect(state.now).to.equal('string');
     });
+
+    it('should rehydrate store state base on context constructor', function() {
+      var context = fluxApp.createContext(null, {
+        stores : {
+          name : {
+            now : 'string'
+          }
+        }
+      });
+
+      var store = context.getStore('name');
+      var state = store.getState();
+
+      expect(state).to.be.a('object');
+      expect(state).to.not.be.empty();
+      expect(state.now).to.equal('string');
+    });
+
+    it('should throw if used after being destroyed', function() {
+      var context = fluxApp.createContext();
+
+      context.destroy();
+
+      expect(context.removeActions).to.throw(Error);
+      expect(context.removeAction).to.throw(Error);
+      expect(context.getActions).to.throw(Error);
+      expect(context.getAction).to.throw(Error);
+      expect(context.removeStore).to.throw(Error);
+      expect(context.getStore).to.throw(Error);
+      expect(context.getActionType).to.throw(Error);
+      expect(context.getDispatcher).to.throw(Error);
+      expect(context.dehydrate).to.throw(Error);
+      expect(context.rehydrate).to.throw(Error);
+      expect(context.destroy.bind(context)).to.not.throw(Error);
+
+    });
+
+    it('should throw custom method, if used after being destroyed', function() {
+      context.destroy();
+
+      expect(context.getRouter).to.throw(Error);
+    });
   });
 });

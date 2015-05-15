@@ -148,8 +148,6 @@ describe('router', function() {
     it('should match full urls', function() {
       var request = router.build('https://user:pass@domain.ext/index?something=else&that=this');
 
-      console.log(request);
-
       expect(request.query.something).to.equal('else');
       expect(request.query.that).to.equal('this');
     });

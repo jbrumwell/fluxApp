@@ -13,8 +13,8 @@ describe('Actions', function() {
     var elem = document.createElement('div');
     var Component = React.createClass(spec);
 
-    var ContextWrapper = fluxApp.createWrapper();
     var context = context && context.context ? context.context : fluxApp.createContext(context);
+    var ContextWrapper = context.wrapper;
 
     document.body.appendChild(elem);
 
