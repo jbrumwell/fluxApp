@@ -2,6 +2,10 @@
 
 This module is an effort to ease the development of [flux](http://www.github.com/facebook/flux) based isomorphic applications.
 
+## Documentation
+
+Documentation is a work in progress!
+
 ### Install
 
 `npm install fluxapp --save`
