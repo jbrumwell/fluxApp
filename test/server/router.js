@@ -68,12 +68,27 @@ describe('router', function() {
       expect(fluxApp.getRouter).to.be.a('function');
     });
 
-    it('should have an createRoute method', function() {
+    it('should have an registerRoute method', function() {
       expect(fluxApp.registerRoute).to.be.a('function');
     });
 
-    it('should have an createRoutes method', function() {
+    it('should have an registerRoutes method', function() {
       expect(fluxApp.registerRoutes).to.be.a('function');
+    });
+
+    it('should be possible to pass an object to registerRoutes', function() {
+      fluxApp.registerRoutes({
+        testing: {
+          path : '/ssjakldjfl/',
+          handler: _.noop
+        },
+      });
+
+      var route = router.getRouteByUrl('/ssjakldjfl/', {
+        method : 'GET'
+      });
+
+      expect(route.id).to.equal('testing');
     });
   });
 
