@@ -4,9 +4,9 @@ A pluggable isomorphic framework
 
 ## Resources
 
-* [Example Applications](http://fluxapp.readme.io)
-* [Documentation](http://fluxapp.readme.io)
-* [Existing Plugins](http://fluxapp.readme.io)
+* [Developer Portal](http://fluxapp.readme.io)
+* [Documentation](http://fluxapp.readme.io/v0.1.3/docs)
+* [Existing Plugins](http://fluxapp.readme.io/v0.1.3/docs/overview-6)
 
 ### Install
 
