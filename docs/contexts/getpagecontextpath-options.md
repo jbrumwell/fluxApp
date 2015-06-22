@@ -142,7 +142,7 @@ Rendering on the server side, this example is global handler for all routes. The
 {
   "codes": [
     {
-      "code": "function handler(request, reply) {\n  var context = fluxApp.createContext();\n\n  return context.getPageContext(request.path, {\n    method: request.method,\n    dehydrate: true,\n  }).then((page) => {\n    var Element = page.element;\n    var markup = Element ? React.renderToString(Element) : null;\n    \n    context.destroy()\n\n    if (! markup) {\n      throw Error('Not Found');\n    } else {\n      reply(Mustache.render(indexTemplate, {\n        page: markup,\n        state: JSON.stringify({\n          state: page.state(),\n          method: page.method,\n        }),\n      })).code(200);\n    }\n  });\n}",
+      "code": "function handler(request, reply) {\n  var context = fluxApp.createContext();\n\n  return context.getPageContext(request.path, {\n    method: request.method,\n    dehydrate: true,\n  }).then((page) => {\n    var Element = page.element;\n    var markup = Element ? React.renderToString(Element) : null;\n    \n    context.destroy()\n\n    if (! markup) {\n      throw Error('Not Found');\n    } else {\n      reply(Mustache.render(indexTemplate, {\n        page: markup,\n        state: JSON.stringify({\n          state: page.state,\n          method: page.method,\n        }),\n      })).code(200);\n    }\n  });\n}",
       "language": "javascript"
     }
   ]
