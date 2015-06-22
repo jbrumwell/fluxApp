@@ -18,7 +18,7 @@ describe('store', function() {
     if (context) {
       context.destroy();
     }
-    
+
     context = fluxApp.createContext();
   })
 
@@ -232,31 +232,6 @@ describe('store', function() {
 
     expect(state.myState).to.equal('is');
     expect(state.always).to.equal('there');
-  });
-
-  it('once dehyrated store states should be empty', function() {
-    var store = createStore('dehydrate', {
-      getInitialState : function() {
-        return {
-          myState : 'is',
-          always : 'here'
-        };
-      },
-
-      toThere : function() {
-        this.setState({
-          always : 'there'
-        });
-      }
-    });
-
-    store.toThere();
-
-    var state = store.dehydrate();
-
-    expect(state.myState).to.equal('is');
-    expect(state.always).to.equal('there');
-    expect(store.getState()).to.be.empty();
   });
 
   it('should rehydrate the store with the supplied state', function() {
