@@ -1,6 +1,6 @@
 {
   "name": "fluxapp",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "A isomorphic flux app design implementation",
   "main": "lib/index.js",
   "scripts": {
