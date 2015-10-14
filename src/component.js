@@ -8,7 +8,10 @@ export default class fluxappComponent extends Component {
   }
 
   constructor(props, context, updater) {
-    super(props, context, updater);
+    if (! context) {
+      throw new Error('Fluxapp:Component did not receive a context, from extended class');
+    }
+    super(...arguments);
 
     this._storeMap = {};
     this._actionMap = {};
