@@ -9,7 +9,7 @@ module.exports = {
   /**
    * Initiate the action handlers and store bindings
    */
-  componentDidMount: function componentDidMount() {
+  componentDidMount : function componentDidMount() {
     var self = this;
     var fluxApp = this.context.flux;
     var flux = this.flux;
@@ -24,7 +24,7 @@ module.exports = {
             throw Error('fluxapp:componentMixin flux action method not found ' + method);
           }
 
-          self.bindActions(flux.actions[method], self[method]);
+          self.bindActions(flux.actions[ method ], self[ method ]);
         });
 
         this.dispatchToken = fluxApp.getDispatcher().register(this.onDispatch);
@@ -36,7 +36,7 @@ module.exports = {
             throw Error('fluxapp:componentMixin flux store method not found ' + method);
           }
 
-          self.bindStores(flux.stores[method], method);
+          self.bindStores(flux.stores[ method ], method);
         });
       }
     }
@@ -45,7 +45,7 @@ module.exports = {
   /**
    * Unregister the dispatch token and unbind stores
    */
-  componentWillUnmount: function componentWillUnmount() {
+  componentWillUnmount : function componentWillUnmount() {
     var fluxApp = this.context.flux;
     var self = this;
     var flux = this.flux;
@@ -56,7 +56,7 @@ module.exports = {
 
     if (flux && flux.stores) {
       Object.keys(flux.stores).forEach(function iterateAction(method) {
-        self.unbindStores(flux.stores[method], self[method]);
+        self.unbindStores(flux.stores[ method ], self[ method ]);
       });
     }
   },
@@ -67,11 +67,11 @@ module.exports = {
    * @param {Object}   actionTypes
    * @param {Function} cb
    */
-  bindActions: function bindActions(actionTypes, cb) {
+  bindActions : function bindActions(actionTypes, cb) {
     var namespaceTransform = require('./util/namespaceTransform');
     var self = this;
 
-    actionTypes = Array.isArray(actionTypes) ? actionTypes : [actionTypes];
+    actionTypes = Array.isArray(actionTypes) ? actionTypes : [ actionTypes ];
 
     actionTypes.forEach(function mapActionType(actionType) {
       var key = namespaceTransform(actionType);
@@ -80,7 +80,7 @@ module.exports = {
         throw new Error('Components may only bind to before, failed and after events');
       }
 
-      self._actionMapper[key] = cb;
+      self._actionMapper[ key ] = cb;
     });
   },
 
@@ -90,16 +90,16 @@ module.exports = {
    * @param {Object}   storeInstances
    * @param {Function} cb
    */
-  bindStores: function bindStores(storeInstances, method) {
+  bindStores : function bindStores(storeInstances, method) {
     var self = this;
     var fluxApp = this.context.flux;
-    var cb = this[method];
+    var cb = this[ method ];
 
-    storeInstances = Array.isArray(storeInstances) ? storeInstances : [storeInstances];
+    storeInstances = Array.isArray(storeInstances) ? storeInstances : [ storeInstances ];
 
     storeInstances.forEach(function mapStoreBindType(store) {
       function onlyMounted() {
-        var args = ['setState', 'replaceState'].indexOf(method) !== -1 ? [arguments[0]] : arguments;
+        var args = ['setState', 'replaceState'].indexOf(method) !== -1 ? [ arguments[0] ] : arguments;
 
         if (self.isMounted()) {
           cb.apply(self, args);
@@ -122,10 +122,10 @@ module.exports = {
    * @param {Object}   storeInstances
    * @param {Function} cb
    */
-  unbindStores: function bindStores(storeInstances, cb) {
+  unbindStores : function bindStores(storeInstances, cb) {
     var fluxApp = this.context.flux;
 
-    storeInstances = Array.isArray(storeInstances) ? storeInstances : [storeInstances];
+    storeInstances = Array.isArray(storeInstances) ? storeInstances : [ storeInstances ];
 
     storeInstances.forEach(function mapStoreUnbindType(store) {
       if (typeof store === 'string') {
@@ -141,7 +141,7 @@ module.exports = {
    *
    * @param {String} name
    */
-  getStore: function getStore(name) {
+  getStore : function getStore(name) {
     return this.context.flux.getStore(name.trim());
   },
 
@@ -149,7 +149,7 @@ module.exports = {
    * Proxy to fluxApp.getActions
    * @param {String} namespace
    */
-  getActions: function getActions(namespace) {
+  getActions : function getActions(namespace) {
     return this.context.flux.getActions(namespace);
   },
 
@@ -159,10 +159,10 @@ module.exports = {
    * @param {String} namespace
    * @param {String} method
    */
-  getAction: function getAction(namespace, method) {
+  getAction : function getAction(namespace, method) {
     var actions = this.getActions(namespace);
 
-    if (!actions[method]) {
+    if (! actions[method]) {
       throw new Error('Method `' + method + '` not found in namespace `' + namespace + '`');
     }
 
@@ -179,9 +179,9 @@ module.exports = {
    *
    * @param {Object} payload
    */
-  onDispatch: function onDispatch(payload) {
-    if (this.isMounted() && this._actionMapper[payload.actionType]) {
-      this._actionMapper[payload.actionType](payload.actionType, payload.payload);
+  onDispatch : function onDispatch(payload) {
+    if (this.isMounted() && this._actionMapper[ payload.actionType ]) {
+      this._actionMapper[ payload.actionType ](payload.actionType, payload.payload);
     }
   }
 };

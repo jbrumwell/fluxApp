@@ -1,36 +1,73 @@
 /* global describe, afterEach, it */
 'use strict';
-var expect = require('chai').expect;
 
-describe('actions', function() {
-  var fluxApp = require('../../lib');
-  var context = fluxApp.createContext();
-  var Promise = require('bluebird');
-  var dispatcher;
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-  function createActions(name, spec) {
-    fluxApp.registerActions(name, spec);
+var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var _chai = require('chai');
+
+var _chai2 = _interopRequireDefault(_chai);
+
+var _bluebird = require('bluebird');
+
+var _bluebird2 = _interopRequireDefault(_bluebird);
+
+var _lib = require('../../lib');
+
+var _lib2 = _interopRequireDefault(_lib);
+
+var expect = _chai2['default'].expect;
+
+describe('actions', function () {
+  var context = _lib2['default'].createContext();
+
+  var dispatcher = context.getDispatcher();
+
+  function createActions(name, constructor) {
+    _lib2['default'].registerActions(name, constructor);
 
     return context.getActions(name);
   }
 
-  afterEach(function() {
+  afterEach(function () {
     if (context) {
       context.destroy();
     }
 
-    context = fluxApp.createContext();
+    context = _lib2['default'].createContext();
     dispatcher = context.getDispatcher();
 
-    fluxApp._actions = {};
+    _lib2['default']._actions = {};
   });
 
-  it('should return a promise', function(done) {
-    var actions = createActions('test', {
-      method : function() {
-        return 'syncing';
+  it('should return a promise', function (done) {
+    var actionClass = (function (_BaseActions) {
+      _inherits(TestActions, _BaseActions);
+
+      function TestActions() {
+        _classCallCheck(this, TestActions);
+
+        _get(Object.getPrototypeOf(TestActions.prototype), 'constructor', this).apply(this, arguments);
       }
-    });
+
+      _createClass(TestActions, [{
+        key: 'method',
+        value: function method() {
+          return 'syncing';
+        }
+      }]);
+
+      return TestActions;
+    })(_lib.BaseActions);
+
+    var actions = createActions('test', actionClass);
 
     var promise = actions.method();
 
@@ -39,16 +76,31 @@ describe('actions', function() {
     promise.then(done.bind(null, null));
   });
 
-  it('should emit the failed event when sync', function(done) {
-    var dispatchId;
-    var failedType = fluxApp.getActionType('test.method:failed');
-    var beforeType = fluxApp.getActionType('test.method:before');
+  it('should emit the failed event when sync', function (done) {
+    var dispatchId = undefined;
+    var failedType = _lib2['default'].getActionType('test.method:failed');
+    var beforeType = _lib2['default'].getActionType('test.method:before');
 
-    var actions = createActions('test', {
-      method : function() {
-        throw new Error('sync failure');
+    var actionClass = (function (_BaseActions2) {
+      _inherits(TestActions, _BaseActions2);
+
+      function TestActions() {
+        _classCallCheck(this, TestActions);
+
+        _get(Object.getPrototypeOf(TestActions.prototype), 'constructor', this).apply(this, arguments);
       }
-    });
+
+      _createClass(TestActions, [{
+        key: 'method',
+        value: function method() {
+          throw new Error('sync failure');
+        }
+      }]);
+
+      return TestActions;
+    })(_lib.BaseActions);
+
+    var actions = createActions('test', actionClass);
 
     function listener(result) {
       if (result.actionType === failedType) {
@@ -66,17 +118,32 @@ describe('actions', function() {
     actions.method();
   });
 
-  it('should emit the event when sync', function(done) {
-    var dispatchId;
+  it('should emit the event when sync', function (done) {
+    var dispatchId = undefined;
 
-    var actions = createActions('test', {
-      method : function() {
-        return 'sync';
+    var actionClass = (function (_BaseActions3) {
+      _inherits(TestActions, _BaseActions3);
+
+      function TestActions() {
+        _classCallCheck(this, TestActions);
+
+        _get(Object.getPrototypeOf(TestActions.prototype), 'constructor', this).apply(this, arguments);
       }
-    });
 
-    var methodType = fluxApp.getActionType('test.method');
-    var beforeType = fluxApp.getActionType('test.method:before');
+      _createClass(TestActions, [{
+        key: 'method',
+        value: function method() {
+          return 'sync';
+        }
+      }]);
+
+      return TestActions;
+    })(_lib.BaseActions);
+
+    var actions = createActions('test', actionClass);
+
+    var methodType = _lib2['default'].getActionType('test.method');
+    var beforeType = _lib2['default'].getActionType('test.method:before');
 
     function listener(result) {
       if (result.actionType === methodType) {
@@ -94,22 +161,37 @@ describe('actions', function() {
     actions.method();
   });
 
-  it('should emit pre event when async', function(done) {
-    var dispatchId;
+  it('should emit pre event when async', function (done) {
+    var dispatchId = undefined;
 
-    var actions = createActions('test', {
-      method : function() {
-        return new Promise(function(resolve, reject) {
-          setImmediate(function() {
-            resolve('async');
-          });
-        });
+    var actionClass = (function (_BaseActions4) {
+      _inherits(TestActions, _BaseActions4);
+
+      function TestActions() {
+        _classCallCheck(this, TestActions);
+
+        _get(Object.getPrototypeOf(TestActions.prototype), 'constructor', this).apply(this, arguments);
       }
-    });
+
+      _createClass(TestActions, [{
+        key: 'method',
+        value: function method() {
+          return new _bluebird2['default'](function (resolve, reject) {
+            setImmediate(function () {
+              resolve('async');
+            });
+          });
+        }
+      }]);
+
+      return TestActions;
+    })(_lib.BaseActions);
+
+    var actions = createActions('test', actionClass);
 
     function listener(result) {
       dispatcher.unregister(dispatchId);
-      expect(result.actionType).to.equal(fluxApp.getActionType('test.method:before'));
+      expect(result.actionType).to.equal(_lib2['default'].getActionType('test.method:before'));
       expect(result.payload).to.be.undefined();
       done();
     }
@@ -119,19 +201,34 @@ describe('actions', function() {
     actions.method();
   });
 
-  it('should emit the event when async', function(done) {
-    var dispatchId;
-    var eventName = fluxApp.getActionType('test.method');
+  it('should emit the event when async', function (done) {
+    var dispatchId = undefined;
+    var eventName = _lib2['default'].getActionType('test.method');
 
-    var actions = createActions('test', {
-      method : function() {
-        return new Promise(function(resolve, reject) {
-          setImmediate(function() {
-            resolve('async');
-          });
-        });
+    var actionClass = (function (_BaseActions5) {
+      _inherits(TestActions, _BaseActions5);
+
+      function TestActions() {
+        _classCallCheck(this, TestActions);
+
+        _get(Object.getPrototypeOf(TestActions.prototype), 'constructor', this).apply(this, arguments);
       }
-    });
+
+      _createClass(TestActions, [{
+        key: 'method',
+        value: function method() {
+          return new _bluebird2['default'](function (resolve, reject) {
+            setImmediate(function () {
+              resolve('async');
+            });
+          });
+        }
+      }]);
+
+      return TestActions;
+    })(_lib.BaseActions);
+
+    var actions = createActions('test', actionClass);
 
     function listener(result) {
       if (result.actionType === eventName) {
@@ -146,19 +243,34 @@ describe('actions', function() {
     actions.method();
   });
 
-  it('should emit post event when async', function(done) {
-    var dispatchId;
-    var eventName = fluxApp.getActionType('test.method:after');
+  it('should emit post event when async', function (done) {
+    var dispatchId = undefined;
+    var eventName = _lib2['default'].getActionType('test.method:after');
 
-    var actions = createActions('test', {
-      method : function() {
-        return new Promise(function(resolve, reject) {
-          setImmediate(function() {
-            resolve('async success');
-          });
-        });
+    var actionClass = (function (_BaseActions6) {
+      _inherits(TestActions, _BaseActions6);
+
+      function TestActions() {
+        _classCallCheck(this, TestActions);
+
+        _get(Object.getPrototypeOf(TestActions.prototype), 'constructor', this).apply(this, arguments);
       }
-    });
+
+      _createClass(TestActions, [{
+        key: 'method',
+        value: function method() {
+          return new _bluebird2['default'](function (resolve, reject) {
+            setImmediate(function () {
+              resolve('async success');
+            });
+          });
+        }
+      }]);
+
+      return TestActions;
+    })(_lib.BaseActions);
+
+    var actions = createActions('test', actionClass);
 
     function listener(result) {
       if (result.actionType === eventName) {
@@ -174,19 +286,34 @@ describe('actions', function() {
     actions.method();
   });
 
-  it('should emit the failed event when async', function(done) {
-    var dispatchId;
-    var eventName = fluxApp.getActionType('test.method:failed');
+  it('should emit the failed event when async', function (done) {
+    var dispatchId = undefined;
+    var eventName = _lib2['default'].getActionType('test.method:failed');
 
-    var actions = createActions('test', {
-      method : function() {
-        return new Promise(function(resolve, reject) {
-          setImmediate(function() {
-            reject(new Error('async failure'));
-          });
-        });
+    var actionClass = (function (_BaseActions7) {
+      _inherits(TestActions, _BaseActions7);
+
+      function TestActions() {
+        _classCallCheck(this, TestActions);
+
+        _get(Object.getPrototypeOf(TestActions.prototype), 'constructor', this).apply(this, arguments);
       }
-    });
+
+      _createClass(TestActions, [{
+        key: 'method',
+        value: function method() {
+          return new _bluebird2['default'](function (resolve, reject) {
+            setImmediate(function () {
+              reject(new Error('async failure'));
+            });
+          });
+        }
+      }]);
+
+      return TestActions;
+    })(_lib.BaseActions);
+
+    var actions = createActions('test', actionClass);
 
     function listener(result) {
       if (result.actionType === eventName) {
@@ -201,29 +328,59 @@ describe('actions', function() {
     actions.method();
   });
 
-  it('should receive the parameters passed by component', function(done) {
-    fluxApp.registerActions('test', {
-      method : function(a, b) {
-        expect(a).to.equal('a');
-        expect(b).to.equal('b');
-        done();
-      }
-    });
+  it('should receive the parameters passed by component', function (done) {
+    var actionClass = (function (_BaseActions8) {
+      _inherits(TestActions, _BaseActions8);
 
-    context.getActions('test').method('a', 'b');
+      function TestActions() {
+        _classCallCheck(this, TestActions);
+
+        _get(Object.getPrototypeOf(TestActions.prototype), 'constructor', this).apply(this, arguments);
+      }
+
+      _createClass(TestActions, [{
+        key: 'parameters',
+        value: function parameters(a, b) {
+          expect(a).to.equal('a');
+          expect(b).to.equal('b');
+          done();
+        }
+      }]);
+
+      return TestActions;
+    })(_lib.BaseActions);
+
+    createActions('test', actionClass);
+
+    context.getActions('test').parameters('a', 'b');
   });
 
-  it('should resolve to an object of actionType = actionResponse', function(done) {
-    fluxApp.registerActions('test', {
-      method : function(a, b) {
-        expect(a).to.equal('a');
-        expect(b).to.equal('b');
-        return [ a, b ];
-      }
-    });
+  it('should resolve to an object of actionType = actionResponse', function (done) {
+    var actionClass = (function (_BaseActions9) {
+      _inherits(TestActions, _BaseActions9);
 
-    context.getActions('test').method('a', 'b').then(function(result) {
-      var actionType = fluxApp.getActionType('test.method');
+      function TestActions() {
+        _classCallCheck(this, TestActions);
+
+        _get(Object.getPrototypeOf(TestActions.prototype), 'constructor', this).apply(this, arguments);
+      }
+
+      _createClass(TestActions, [{
+        key: 'parameters',
+        value: function parameters(a, b) {
+          expect(a).to.equal('a');
+          expect(b).to.equal('b');
+          return [a, b];
+        }
+      }]);
+
+      return TestActions;
+    })(_lib.BaseActions);
+
+    createActions('test', actionClass);
+
+    context.getActions('test').parameters('a', 'b').then(function (result) {
+      var actionType = _lib2['default'].getActionType('test.parameters');
 
       expect(result).to.be.a('array');
       expect(result[0]).to.equal(actionType);
@@ -234,19 +391,34 @@ describe('actions', function() {
     });
   });
 
-  it('should resolve to an object of actionType = actionResponse async', function(done) {
-    fluxApp.registerActions('test', {
-      method : function(a, b) {
-        expect(a).to.equal('a');
-        expect(b).to.equal('b');
-        return new Promise(function(resolve) {
-          setImmediate(resolve.bind(resolve, [ a, b ]));
-        });
-      }
-    });
+  it('should resolve to an object of actionType = actionResponse async', function (done) {
+    var actionClass = (function (_BaseActions10) {
+      _inherits(TestActions, _BaseActions10);
 
-    context.getActions('test').method('a', 'b').then(function(result) {
-      var actionType = fluxApp.getActionType('test.method');
+      function TestActions() {
+        _classCallCheck(this, TestActions);
+
+        _get(Object.getPrototypeOf(TestActions.prototype), 'constructor', this).apply(this, arguments);
+      }
+
+      _createClass(TestActions, [{
+        key: 'method',
+        value: function method(a, b) {
+          expect(a).to.equal('a');
+          expect(b).to.equal('b');
+          return new _bluebird2['default'](function (resolve) {
+            setImmediate(resolve.bind(resolve, [a, b]));
+          });
+        }
+      }]);
+
+      return TestActions;
+    })(_lib.BaseActions);
+
+    createActions('test', actionClass);
+
+    context.getActions('test').method('a', 'b').then(function (result) {
+      var actionType = _lib2['default'].getActionType('test.method');
 
       expect(result).to.be.a('array');
       expect(result[0]).to.equal(actionType);

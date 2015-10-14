@@ -31,11 +31,14 @@ Router.prototype.build = function build(to, meta, strict) {
       path = parser.reverse(meta.params);
     }
 
-    if (!path) {
+    if (! path) {
       throw new Error('fluxapp:router:build Missing required parameters, unable to build route.');
     }
 
-    parsed = _.merge(_.pick(url.parse(path, true), 'path', 'pathname', 'query', 'hash'), meta);
+    parsed = _.merge(
+      _.pick(url.parse(path, true), 'path', 'pathname', 'query', 'hash'),
+      meta
+    );
 
     parsed.params = parsed.params || {};
     parsed.url = url.format(parsed);
@@ -52,10 +55,10 @@ Router.prototype.build = function build(to, meta, strict) {
 Router.prototype.getRoute = function getRoute(input, meta, strict) {
   var route = input;
 
-  if (!_.isObject(input)) {
+  if (! _.isObject(input)) {
     route = this.getRouteById(input, true);
 
-    if (!route) {
+    if (! route) {
       route = this.getRouteByUrl(input, meta, strict);
     }
   }
@@ -80,21 +83,21 @@ Router.prototype.getRouteByUrl = function getRouteByUrl(path, meta, strict) {
   path = url.format(parsed);
   meta = meta || {};
 
-  _.some(this._routes, function (route, key) {
+  _.some(this._routes, function(route, key) {
     params = self._parsers[route.id].match(path);
 
     if (params && self._methodMatch(meta.method, route.method)) {
-      if (!route.notFound) {
+      if(! route.notFound) {
         found = route;
-      } else if (!strict && (!notFound || route.path > notFound.path)) {
-        notFound = route;
+      } else if (! strict && (! notFound || route.path > notFound.path)) {
+        notFound =  route;
       }
     }
 
     return found;
   });
 
-  if (!found && notFound) {
+  if (! found && notFound) {
     found = notFound;
   }
 
@@ -104,8 +107,8 @@ Router.prototype.getRouteByUrl = function getRouteByUrl(path, meta, strict) {
 Router.prototype.getRouteById = function getRouteById(id, strict) {
   var found = this._routes[id];
 
-  if (!found && !strict) {
-    _.some(this._routes, function (route, key) {
+  if (! found && ! strict) {
+    _.some(this._routes, function(route, key) {
       if (route.notFound) {
         found = route;
       }
@@ -135,7 +138,9 @@ Router.prototype._methodMatch = function methodMatch(supplied, route) {
   }
 
   if (route) {
-    if (!supplied || (route === supplied || Array.isArray(route) && -1 !== route.indexOf(supplied))) {
+    if (! supplied ||
+      (route === supplied || (Array.isArray(route) && (-1 !== route.indexOf(supplied))))
+    ) {
       match = true;
     }
   } else {
@@ -162,23 +167,23 @@ Router.prototype.addRoutes = function addRoutes(routes) {
  * @param {Object} route
  */
 Router.prototype.addRoute = function addRoute(route) {
-  if (!route.id) {
+  if (! route.id) {
     throw new Error('fluxapp:router Route requires an id property.');
   }
 
-  if (this._routes[route.id]) {
+  if (this._routes[ route.id ]) {
     throw new Error('fluxapp:router Route with id ' + route.id + ' already exists');
   }
 
   if (route.notFound) {
-    route.path = !route.path ? '/*path' : path.join(route.path, '/*path');
+    route.path = ! route.path ? '/*path' : path.join(route.path,'/*path');
   }
 
-  if (!route.path) {
+  if (! route.path) {
     throw new Error('fluxApp:router requires a path to be registered');
   }
 
-  if (!route.handler) {
+  if (! route.handler) {
     throw new Error('fluxApp:router requires a handler to be registered');
   }
 
@@ -190,7 +195,7 @@ Router.prototype.addRoute = function addRoute(route) {
     route.loader = route.handler.load;
   }
 
-  if (!route.loader) {
+  if (! route.loader) {
     route.loader = _.noop;
   }
 

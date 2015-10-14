@@ -25,7 +25,10 @@ function FluxAppContext(fluxApp, contextMethods, state) {
     return new Store(self);
   });
 
-  this._fluxApp.on('stores.add', this._onStoreAdd).on('stores.remove', this._onStoreRemove).on('actions.add', this._onActionAdd).on('actions.remove', this._onActionRemove);
+  this._fluxApp.on('stores.add', this._onStoreAdd)
+               .on('stores.remove', this._onStoreRemove)
+               .on('actions.add', this._onActionAdd)
+               .on('actions.remove', this._onActionRemove);
 
   if (state) {
     this.rehydrate(state);
@@ -45,7 +48,7 @@ FluxAppContext.prototype.aliveCheck = function aliveCheck(name) {
   if (this.destroyed === true) {
     name = name || 'Uknown';
 
-    throw new Error('Fluxapp: Context#' + name + ' called after being destroyed');
+    throw new Error('Fluxapp: Context#' + name +' called after being destroyed');
   }
 };
 
@@ -107,7 +110,10 @@ FluxAppContext.prototype.destroy = function destroy() {
   this.destroyed = true;
 
   if (this._fluxApp) {
-    this._fluxApp.removeListener('stores.add', this._onStoreAdd).removeListener('stores.remove', this._onStoreRemove).removeListener('actions.add', this._onActionAdd).removeListener('actions.remove', this._onActionRemove);
+    this._fluxApp.removeListener('stores.add', this._onStoreAdd)
+                 .removeListener('stores.remove', this._onStoreRemove)
+                 .removeListener('actions.add', this._onActionAdd)
+                 .removeListener('actions.remove', this._onActionRemove);
 
     this._fluxApp = null;
   }
@@ -122,7 +128,7 @@ FluxAppContext.prototype.bindContextMethods = function bindContextMethods(method
   var self = this;
 
   _.each(methods, function bindMethod(fn, key) {
-    self[key] = function () {
+    self[key] = function() {
       self.aliveCheck(key);
 
       return fn.apply(self, arguments);
@@ -145,7 +151,7 @@ FluxAppContext.prototype.getDispatcher = function getDispatcher() {
 * @param {String} input
 */
 FluxAppContext.prototype.getActionType = function getActionType(input) {
-  this.aliveCheck('getActionType(' + input + ')');
+  this.aliveCheck('getActionType(' + input +')');
 
   return this._fluxApp.getActionType(input);
 };
@@ -160,7 +166,7 @@ FluxAppContext.prototype.getStore = function getStore(name) {
 
   var store = this._stores[name];
 
-  if (!store) {
+  if (! store) {
     throw new Error('fluxApp: Could not locate store by the name ' + name);
   }
 
@@ -181,7 +187,7 @@ FluxAppContext.prototype.removeStore = function removeStore(name) {
   if (store) {
     dispatcher.unregister(store.dispatchToken);
 
-    delete this._stores[name];
+    delete this._stores[ name ];
 
     store.destroy();
   }
@@ -198,9 +204,9 @@ FluxAppContext.prototype.removeStore = function removeStore(name) {
 FluxAppContext.prototype.getAction = function getAction(namespace, method) {
   this.aliveCheck('getAction(' + namespace + ', ' + method + ')');
 
-  var actions = this._actions[namespace];
+  var actions = this._actions[ namespace ];
 
-  return actions[method].bind(actions);
+  return actions[ method ].bind(actions);
 };
 
 /**
@@ -211,7 +217,7 @@ FluxAppContext.prototype.getAction = function getAction(namespace, method) {
 FluxAppContext.prototype.getActions = function getActions(namespace) {
   this.aliveCheck('getActions(' + namespace + ')');
 
-  return this._actions[namespace];
+  return this._actions[ namespace ];
 };
 
 /**
@@ -222,7 +228,7 @@ FluxAppContext.prototype.getActions = function getActions(namespace) {
 FluxAppContext.prototype.removeActions = function removeActions(namespace) {
   this.aliveCheck('removeActions(' + namespace + ')');
 
-  delete this._actions[namespace];
+  delete this._actions[ namespace ];
 
   return this;
 };
@@ -235,7 +241,7 @@ FluxAppContext.prototype.removeActions = function removeActions(namespace) {
 */
 FluxAppContext.prototype.removeAction = function removeAction(namespace, method) {
   this.aliveCheck('removeAction(' + namespace + ', ' + method + ')');
-  delete this._actions[namespace][method];
+  delete this._actions[ namespace ][ method ];
 };
 
 /**
@@ -278,30 +284,33 @@ FluxAppContext.prototype._getPageContext = function _getPageContext(request, opt
     context: this,
     params: request.params,
     query: request.query,
-    request: request
+    request: request,
   });
 
-  options.wait = options.dehydrate ? true : !!options.wait;
+  options.wait = options.dehydrate ? true : !! options.wait;
 
   return new Promise(function prepareContext(resolve, reject) {
-    var Element = React.createElement(self.getWrapper(), options.props);
+    var Element = React.createElement(
+      self.getWrapper(),
+      options.props
+    );
     var result;
 
-    if (options.dehydrate || !options.state) {
-      result = route.loader(request, self).then(function () {
+    if (options.dehydrate || ! options.state) {
+      result = route.loader(request, self).then(function() {
         return {
           element: Element,
           state: options.dehydrate ? self.dehydrate() : {},
-          method: options.method
-        };
+          method: options.method,
+        }
       });
     }
 
-    if (!result || !options.wait) {
+    if (! result || ! options.wait) {
       result = Promise.resolve({
         element: Element,
         state: options.dehydrate ? self.dehydrate() : {},
-        method: options.method
+        method: options.method,
       });
     }
 
@@ -325,7 +334,7 @@ FluxAppContext.prototype.getPageContext = function getPageContext(path, options)
 
   return request ? this._getPageContext(request, options || {}) : Promise.resolve({
     element: false,
-    state: {}
+    state: {},
   });
 };
 
@@ -359,7 +368,10 @@ FluxAppContext.prototype.renderToString = function renderToString(path, options)
 FluxAppContext.prototype.render = function render(path, options) {
   return this.getPageContext(path, options).then(function _render(page) {
     if (page && page.element) {
-      React.render(page.element, options.container);
+      React.render(
+        page.element,
+        options.container
+      );
     }
 
     return page;
@@ -376,10 +388,10 @@ FluxAppContext.prototype._dehydrateStores = function _dehydrateStores() {
   var stores = this._stores;
 
   Object.keys(stores).map(function dehydrateStore(id) {
-    var state = stores[id].dehydrate();
+    var state = stores[ id ].dehydrate();
 
     if (state) {
-      storeData[id] = state;
+      storeData[ id ] = state;
     }
   });
 
@@ -395,7 +407,7 @@ FluxAppContext.prototype.dehydrate = function dehydrate() {
   this.aliveCheck('dehydrate()');
 
   return {
-    stores: this._dehydrateStores()
+     stores : this._dehydrateStores()
   };
 };
 
@@ -404,12 +416,12 @@ FluxAppContext.prototype.dehydrate = function dehydrate() {
 *
 * @param {Object} state
 */
-FluxAppContext.prototype._rehydrateStores = function _rehydrateStores(state) {
+ FluxAppContext.prototype._rehydrateStores = function _rehydrateStores(state) {
   var stores = this._stores;
 
   if (state) {
     Object.keys(state).forEach(function rehydrateStore(id) {
-      stores[id].rehydrate(state[id]);
+      stores[ id ].rehydrate(state[ id ]);
     });
   }
 
@@ -423,13 +435,13 @@ FluxAppContext.prototype._rehydrateStores = function _rehydrateStores(state) {
 * @return {fluxAppContext}
 */
 FluxAppContext.prototype.rehydrate = function rehydrate(state) {
-  this.aliveCheck('rehydrate()');
+ this.aliveCheck('rehydrate()');
 
-  if (state.stores) {
-    this._rehydrateStores(state.stores);
-  }
+ if (state.stores) {
+   this._rehydrateStores(state.stores);
+ }
 
-  return this;
+ return this;
 };
 
 module.exports = FluxAppContext;

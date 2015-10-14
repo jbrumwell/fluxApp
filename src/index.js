@@ -1,44 +1,13 @@
-'use strict';
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-var _actions = require('./actions');
-
-var _actions2 = _interopRequireDefault(_actions);
-
-var _store = require('./store');
-
-var _store2 = _interopRequireDefault(_store);
-
-var _componentMixin = require('./componentMixin');
-
-var _componentMixin2 = _interopRequireDefault(_componentMixin);
-
-var _component = require('./component');
-
-var _component2 = _interopRequireDefault(_component);
-
-var _context = require('./context');
-
-var _context2 = _interopRequireDefault(_context);
-
-var _lodash = require('lodash');
-
-var _lodash2 = _interopRequireDefault(_lodash);
-
-var _util = require('util');
-
-var _util2 = _interopRequireDefault(_util);
-
-var _events = require('events');
-
-var _react = require('react');
-
-var _react2 = _interopRequireDefault(_react);
-
-var _router = require('./router');
-
-var _router2 = _interopRequireDefault(_router);
+import BaseActions from './actions';
+import BaseStore from './store';
+import ComponentMixin from './componentMixin';
+import Component from './component';
+import Context from './context';
+import _ from 'lodash';
+import utils from 'util';
+import { EventEmitter } from 'events';
+import React from 'react';
+import Router from './router';
 
 /**
  * Fluxapp Module
@@ -49,14 +18,14 @@ function FluxApp() {
   this._plugins = {};
   this._contextMethods = {};
 
-  this.router = new _router2['default'](this);
+  this.router = new Router(this);
 
-  _events.EventEmitter.call(this);
+  EventEmitter.call(this);
 
   this.setMaxListeners(0);
 }
 
-_util2['default'].inherits(FluxApp, _events.EventEmitter);
+utils.inherits(FluxApp, EventEmitter);
 
 /**
  * Get the definition for the plugin by name
@@ -87,7 +56,7 @@ FluxApp.prototype.getPlugin = function getPlugin(name) {
  * @param {String} name plugin name
  */
 FluxApp.prototype.hasPlugin = function hasPlugin(name) {
-  return !!this._plugins[name];
+  return !! this._plugins[name];
 };
 
 /**
@@ -107,24 +76,24 @@ FluxApp.prototype.removePlugin = function removePlugin(name) {
   var plugin = this._plugins[name];
   var self = this;
 
-  if (!plugin) {
+  if (! plugin) {
     throw new Error('fluxapp: plugin ' + name + ' has not been registered, unable to remove');
   }
 
   if (plugin.stores) {
-    _lodash2['default'].each(plugin.stores, function registerPluginStores(spec, name) {
+    _.each(plugin.stores, function registerPluginStores(spec, name) {
       self.removeStore(name);
     });
   }
 
   if (plugin.actions) {
-    _lodash2['default'].each(plugin.actions, function registerPluginActions(handlers, name) {
+    _.each(plugin.actions, function registerPluginActions(handlers, name) {
       self.removeActions(name);
     });
   }
 
   if (plugin.contextMethods) {
-    this._contextMethods = _lodash2['default'].omit(this._contextMethods, _lodash2['default'].keys(plugin.contextMethods));
+    this._contextMethods = _.omit(this._contextMethods, _.keys(plugin.contextMethods));
   }
 
   delete this._plugins[name];
@@ -146,8 +115,8 @@ FluxApp.prototype.removePlugin = function removePlugin(name) {
 FluxApp.prototype.registerPlugins = function registerPlugins(plugins) {
   var self = this;
 
-  _lodash2['default'].each(plugins, function _registerPlugin(plugin, name) {
-    self.registerPlugin(name, plugin);
+  _.each(plugins, function _registerPlugin(plugin, name) {
+     self.registerPlugin(name, plugin);
   });
 
   return this;
@@ -171,24 +140,24 @@ FluxApp.prototype.registerPlugin = function registerPlugin(name, plugin) {
     throw new Error('fluxapp: plugin ' + name + ' was already registered');
   }
 
-  if (_lodash2['default'].isFunction(plugin)) {
+  if (_.isFunction(plugin)) {
     plugin = plugin(this, name);
   }
 
   if (plugin.stores) {
-    _lodash2['default'].each(plugin.stores, function registerPluginStores(spec, name) {
+    _.each(plugin.stores, function registerPluginStores(spec, name) {
       self.registerStore(name, spec);
     });
   }
 
   if (plugin.actions) {
-    _lodash2['default'].each(plugin.actions, function registerPluginActions(handlers, name) {
+    _.each(plugin.actions, function registerPluginActions(handlers, name) {
       self.registerActions(name, handlers);
     });
   }
 
   if (plugin.contextMethods) {
-    this._contextMethods = _lodash2['default'].assign(this._contextMethods, plugin.contextMethods);
+    this._contextMethods = _.assign(this._contextMethods, plugin.contextMethods);
   }
 
   this._plugins[name] = plugin;
@@ -208,29 +177,29 @@ FluxApp.prototype.registerPlugin = function registerPlugin(name, plugin) {
  * @param {String} name optional custom name for the context
  */
 FluxApp.prototype.createWrapper = function createWrapper(name) {
-  return _react2['default'].createClass({
+  return React.createClass({
     displayName: name || 'fluxAppContext',
 
     PropTypes: {
-      handler: _react2['default'].PropTypes.element.isRequired,
-      context: _react2['default'].PropTypes.object.isRequired
+      handler: React.PropTypes.element.isRequired,
+      context: React.PropTypes.object.isRequired,
     },
 
     childContextTypes: {
-      flux: _react2['default'].PropTypes.object.isRequired
+      flux: React.PropTypes.object.isRequired,
     },
 
-    getChildContext: function getChildContext() {
+    getChildContext() {
       return {
-        flux: this.props.context
+        flux: this.props.context,
       };
     },
 
-    render: function render() {
+    render: function() {
       var Component = this.props.handler;
-      var props = _lodash2['default'].omit(this.props, 'handler');
+      var props = _.omit(this.props, 'handler');
 
-      return _react2['default'].createElement(Component, props);
+      return React.createElement(Component, props);
     }
   });
 };
@@ -256,11 +225,11 @@ FluxApp.prototype.createWrapper = function createWrapper(name) {
  * @param {Object} spec
  */
 FluxApp.prototype.registerStore = function registerStore(name, store) {
-  if (this._stores[name]) {
+  if (this._stores[ name ]) {
     throw new Error('fluxApp: store already registered under id "' + store.constructor.name + '"');
   }
 
-  this._stores[name] = store;
+  this._stores[ name ] = store;
 
   this.emit('stores.add', name, store);
 
@@ -313,7 +282,7 @@ FluxApp.prototype.hasStore = function hasStore(name) {
 FluxApp.prototype.registerStores = function registerStores(stores) {
   var self = this;
 
-  _lodash2['default'].forIn(stores, function register(value, key) {
+  _.forIn(stores, function register(value, key) {
     self.registerStore(key, value);
   });
 
@@ -332,7 +301,7 @@ FluxApp.prototype.registerStores = function registerStores(stores) {
  * @param {String} name
  */
 FluxApp.prototype.removeStore = function removeStore(name) {
-  delete this._stores[name];
+  delete this._stores[ name ];
   this.emit('stores.remove', name);
 
   return this;
@@ -359,15 +328,15 @@ FluxApp.prototype.registerActions = function registerActions(namespace, ActionCl
     throw new Error('fluxApp:actions namespaces cannot contain a period');
   }
 
-  if (!this._actions[namespace]) {
-    this._actions[namespace] = ActionClass;
+  if (! this._actions[ namespace ]) {
+    this._actions[ namespace ] = ActionClass;
   } else {
     throw new Error('Actions with namespace ' + namespace + ' have already been initiated');
   }
 
-  this.emit('actions.add', namespace, this._actions[namespace]);
+  this.emit('actions.add', namespace, this._actions[ namespace ]);
 
-  return this._actions[namespace];
+  return this._actions[ namespace ];
 };
 
 /**
@@ -382,7 +351,7 @@ FluxApp.prototype.registerActions = function registerActions(namespace, ActionCl
  * @param {String} namespace
  */
 FluxApp.prototype.removeActions = function removeActions(namespace) {
-  delete this._actions[namespace];
+  delete this._actions[ namespace ];
   this.emit('actions.remove', namespace);
 
   return this;
@@ -446,7 +415,7 @@ FluxApp.prototype.getRouter = function getRouter() {
 FluxApp.prototype.registerRoutes = function registerRoutes(routes) {
   var self = this;
 
-  _lodash2['default'].each(routes, function _registerRoute(route, id) {
+  _.each(routes, function _registerRoute(route, id) {
     route.id = route.id ? route.id : id;
 
     self.registerRoute(route);
@@ -497,12 +466,15 @@ FluxApp.prototype.registerRoute = function registerRoute(route) {
  * @param {Object} [state]          Application state to be re-initiated
  */
 FluxApp.prototype.createContext = function createContext(contextMethods, state) {
-  if (!state && contextMethods && contextMethods.stores && typeof contextMethods.stores === 'function') {
+  if (
+    !state && contextMethods &&
+    contextMethods.stores && typeof contextMethods.stores === 'function'
+  ) {
     state = contextMethods;
     contextMethods = {};
   }
 
-  return new _context2['default'](this, _lodash2['default'].assign(contextMethods || {}, this._contextMethods), state);
+  return new Context(this, _.assign(contextMethods || {}, this._contextMethods), state);
 };
 
 /**
@@ -516,15 +488,16 @@ function getInstance() {
    *
    * @type {Object}
    */
-  instance.Mixin = _componentMixin2['default'];
-  instance.Component = _component2['default'];
+  instance.Mixin = ComponentMixin;
+  instance.Component = Component;
 
-  instance.BaseActions = _actions2['default'];
-  instance.BaseStore = _store2['default'];
+  instance.BaseActions = BaseActions;
+  instance.BaseStore = BaseStore;
 
   return instance;
 };
 
 FluxApp.prototype.noConflict = getInstance;
+
 
 module.exports = getInstance();
