@@ -164,6 +164,14 @@ export default class fluxappComponent extends Component {
   }
 
   /**
+   * Get the current fluxapp context
+   * @return {FluxappContext}
+   */
+  getFluxappContext() {
+    return this.context.flux;
+  }
+
+  /**
    * Proxy to fluxapp.getStore
    *
    * @param {String} name
