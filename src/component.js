@@ -76,7 +76,7 @@ export default class fluxappComponent extends Component {
         throw new Error('Components may only bind to before, failed and after events');
       }
 
-      this._actionMap[ key ] = cb;
+      this._actionMap[ key ] = cb.bind(this);
     });
   }
 
