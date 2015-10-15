@@ -1,6 +1,6 @@
 /* global describe, it, afterEach, document, sinon, expect */
 import React from 'react';
-import fluxapp, { BaseStore, Component } from '../../../lib';
+import fluxapp, { BaseStore, BaseActions, Component } from '../../../lib';
 
 export default () => {
   describe('component', () => {
@@ -64,12 +64,29 @@ export default () => {
       renderedComponent = renderComponent(Comp);
     });
 
-    it('should get notified when a store updates', () => {
-      const storeClass = class TestStore extends BaseStore {};
+    it('should get notified when a store updates', (done) => {
+      const actionClass = class TestActions extends BaseActions {
+        method() {
+          return {
+            success : true,
+          };
+        }
+      };
+
+      fluxapp.registerActions('test', actionClass);
+
+      const storeClass = class TestStore extends BaseStore {
+        static actions = {
+          onTestMethod : 'test.method',
+        }
+
+        onTestMethod(result) {
+          this.setState(result);
+        }
+      };
 
       fluxapp.registerStore('test', storeClass);
 
-      const spy = sinon.spy();
       const context = fluxapp.createContext();
 
       const Comp = class TestComponent extends Component {
@@ -77,8 +94,10 @@ export default () => {
           onTestUpdate : 'test',
         }
 
-        onTestUpdate() {
-          spy();
+        onTestUpdate(state, store) {
+          expect(state.success).to.equal(true);
+          expect(store instanceof storeClass).to.equal(true);
+          done();
         }
 
         render() {
@@ -92,11 +111,8 @@ export default () => {
         context : context,
       });
 
-      const store = context.getStore('test');
-
-      store.emitChange();
-
-      expect(spy.called).to.equal(true);
+      const testActions = context.getActions('test');
+      testActions.method();
     });
 
     it('should not get notified when a store updates, when unmounted', () => {
@@ -130,9 +146,12 @@ export default () => {
 
       context.getStore('test');
 
+      expect(spy.callCount).to.equal(0);
+
       store.emitChange();
 
       expect(spy.called).to.equal(true);
+      expect(spy.callCount).to.equal(1);
 
       const elem = renderedComponent.getDOMNode().parentNode;
       React.unmountComponentAtNode(elem);

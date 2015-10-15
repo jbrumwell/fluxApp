@@ -123,7 +123,30 @@ exports['default'] = function () {
       renderedComponent = renderComponent(Comp);
     });
 
-    it('should get notified when a store updates', function () {
+    it('should get notified when a store updates', function (done) {
+      var actionClass = (function (_BaseActions) {
+        _inherits(TestActions, _BaseActions);
+
+        function TestActions() {
+          _classCallCheck(this, TestActions);
+
+          _get(Object.getPrototypeOf(TestActions.prototype), 'constructor', this).apply(this, arguments);
+        }
+
+        _createClass(TestActions, [{
+          key: 'method',
+          value: function method() {
+            return {
+              success: true
+            };
+          }
+        }]);
+
+        return TestActions;
+      })(_lib.BaseActions);
+
+      _lib2['default'].registerActions('test', actionClass);
+
       var storeClass = (function (_BaseStore2) {
         _inherits(TestStore, _BaseStore2);
 
@@ -133,12 +156,24 @@ exports['default'] = function () {
           _get(Object.getPrototypeOf(TestStore.prototype), 'constructor', this).apply(this, arguments);
         }
 
+        _createClass(TestStore, [{
+          key: 'onTestMethod',
+          value: function onTestMethod(result) {
+            this.setState(result);
+          }
+        }], [{
+          key: 'actions',
+          value: {
+            onTestMethod: 'test.method'
+          },
+          enumerable: true
+        }]);
+
         return TestStore;
       })(_lib.BaseStore);
 
       _lib2['default'].registerStore('test', storeClass);
 
-      var spy = sinon.spy();
       var context = _lib2['default'].createContext();
 
       var Comp = (function (_Component3) {
@@ -152,8 +187,10 @@ exports['default'] = function () {
 
         _createClass(TestComponent, [{
           key: 'onTestUpdate',
-          value: function onTestUpdate() {
-            spy();
+          value: function onTestUpdate(state, store) {
+            expect(state.success).to.equal(true);
+            expect(store instanceof storeClass).to.equal(true);
+            done();
           }
         }, {
           key: 'render',
@@ -179,11 +216,8 @@ exports['default'] = function () {
         context: context
       });
 
-      var store = context.getStore('test');
-
-      store.emitChange();
-
-      expect(spy.called).to.equal(true);
+      var testActions = context.getActions('test');
+      testActions.method();
     });
 
     it('should not get notified when a store updates, when unmounted', function () {
@@ -245,9 +279,12 @@ exports['default'] = function () {
 
       context.getStore('test');
 
+      expect(spy.callCount).to.equal(0);
+
       store.emitChange();
 
       expect(spy.called).to.equal(true);
+      expect(spy.callCount).to.equal(1);
 
       var elem = renderedComponent.getDOMNode().parentNode;
       _react2['default'].unmountComponentAtNode(elem);

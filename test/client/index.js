@@ -11,3 +11,4 @@ require('../server/router');
 require('../server/plugins');
 require('./stores');
 require('./actions');
+require('./component');

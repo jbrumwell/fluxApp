@@ -11,13 +11,34 @@ export default class fluxappComponent extends Component {
     if (! context) {
       throw new Error('Fluxapp:Component did not receive a context, from extended class');
     }
+
     super(...arguments);
+
+    this._ensureLifecycleMethods();
 
     this._storeMap = {};
     this._actionMap = {};
 
     this._initActions(this.constructor.actions);
     this._initStores(this.constructor.stores);
+  }
+
+  _ensureLifecycleMethods() {
+    const lifecycle = [ 'componentWillMount', 'componentWillUnmount' ];
+
+    _.each(lifecycle, (method) => {
+      const childMethod = this[method];
+      const componentMethod = this[`_${method}`].bind(this);
+
+      if (childMethod) {
+        this[method] = () => {
+          componentMethod();
+          childMethod.call(this);
+        };
+      } else {
+        this[method] = componentMethod;
+      }
+    });
   }
 
   /**
@@ -87,8 +108,9 @@ export default class fluxappComponent extends Component {
     storeInstances = Array.isArray(storeInstances) ? storeInstances : [ storeInstances ];
 
     storeInstances.forEach((store) => {
-      const listener = () => {
-        const args = ['setState', 'replaceState'].indexOf(method) !== -1 ? [ arguments[0] ] : arguments;
+      function listener() {
+        const isInternal = ['setState', 'replaceState'].indexOf(method) !== -1;
+        const args = isInternal ? [ arguments[0] ] : arguments;
         cb.apply(this, args);
       };
 
@@ -123,14 +145,15 @@ export default class fluxappComponent extends Component {
     });
   }
 
-  componentWillMount() {
+
+  _componentWillMount() {
     _.each(this._storeMap, (stores, method) => this._bindStores(stores, method));
   }
 
   /**
    * Unregister the dispatch token and unbind stores
    */
-  componentWillUnmount() {
+  _componentWillUnmount() {
     const fluxapp = this.context.flux;
 
     if (this._dispatchToken) {
