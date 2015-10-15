@@ -56,10 +56,13 @@ export default class BaseActions {
   /**
   * Dispatches the action failed event
   */
-  _dispatchFailed(namespace, err) {
+  _dispatchFailed(namespace, args, error) {
     return this.dispatcher.dispatch({
       actionType : namespaceTransform(namespace, 'failed'),
-      payload : err,
+      payload : {
+        args,
+        error,
+      },
     });
   }
 
@@ -89,9 +92,9 @@ export default class BaseActions {
         this._dispatchAction.bind(this, actionType)
       ).then(
         this._dispatchAfter.bind(this, namespace)
-      ).catch(this._dispatchFailed.bind(this, namespace));
+      ).catch(this._dispatchFailed.bind(this, namespace, args));
     } else if (response.isRejected()) {
-      this._dispatchFailed(namespace, response.reason());
+      this._dispatchFailed(namespace, args, response.reason());
     } else {
       actionDispatch = this._dispatchAction(actionType, response.value());
       actionDispatch.then(this._dispatchAfter.bind(this, namespace));

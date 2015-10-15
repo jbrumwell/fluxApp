@@ -60,7 +60,7 @@ describe('actions', () => {
       if (result.actionType === failedType) {
         dispatcher.unregister(dispatchId);
         expect(result.actionType).to.equal(failedType);
-        expect(result.payload.message).to.equal('sync failure');
+        expect(result.payload.error.message).to.equal('sync failure');
         done();
       } else {
         expect(result.actionType).to.equal(beforeType);
