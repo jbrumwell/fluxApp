@@ -222,7 +222,7 @@ export default class fluxappComponent extends Component {
      const map = this._actionMap;
 
      if (map[ payload.actionType ]) {
-       map[ payload.actionType ](payload.actionType, payload.payload);
+       map[ payload.actionType ](payload.payload, payload.actionType);
      }
    }
 }
