@@ -108,11 +108,11 @@ export default class fluxappComponent extends Component {
     storeInstances = Array.isArray(storeInstances) ? storeInstances : [ storeInstances ];
 
     storeInstances.forEach((store) => {
-      function listener() {
+      const listener = function() {
         const isInternal = ['setState', 'replaceState'].indexOf(method) !== -1;
         const args = isInternal ? [ arguments[0] ] : arguments;
         cb.apply(this, args);
-      };
+      }.bind(this);
 
       if (typeof store === 'string') {
         store = fluxapp.getStore(store);

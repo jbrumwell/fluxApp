@@ -27,7 +27,7 @@ const TestComponent = class extends Component {
   }
 };
 
-describe.only('Component', function() {
+describe('Component', function() {
   let renderedComponent;
 
   function renderComponent(Comp, spies) {

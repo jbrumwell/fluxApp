@@ -63,7 +63,7 @@ var TestComponent = (function (_Component) {
   return TestComponent;
 })(_lib.Component);
 
-describe.only('Component', function () {
+describe('Component', function () {
   var renderedComponent = undefined;
 
   function renderComponent(Comp, spies) {
