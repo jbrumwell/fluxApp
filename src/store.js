@@ -183,6 +183,16 @@ export default class BaseStore extends EventEmitter {
   destroy() {}
 
   /**
+   * Tests the equality of current and next state
+   *
+   * @param  {Ojbect}  nextState
+   * @return {Boolean}
+   */
+  _isEqual(nextState) {
+    return JSON.stringify(nextState) === JSON.stringify(this.getMutableState());
+  }
+
+  /**
    * Set the state of the store
    *
    * <pre>
@@ -205,9 +215,9 @@ export default class BaseStore extends EventEmitter {
    */
   setState(state, noEvent) {
     const currentState = this.getMutableState();
-    const isEqual = _.isEqual(currentState, state);
+    const isEqual = this._isEqual(state);
 
-    this.state = isEqual ? this.state : immutable(currentState).merge(state);
+    this.state = isEqual ? currentState : immutable(currentState).merge(state);
 
     if (! noEvent && ! isEqual) {
       this.emitChange();
@@ -236,7 +246,7 @@ export default class BaseStore extends EventEmitter {
   * @param {Object} state
   */
   replaceState(state, noEvent) {
-    const isEqual = _.isEqual(this.getMutableState(), state);
+    const isEqual = this._isEqual(state);
 
     this.state = isEqual ? this.state : immutable(state);
 
