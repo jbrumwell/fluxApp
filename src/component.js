@@ -181,6 +181,17 @@ export default class fluxappComponent extends Component {
   }
 
   /**
+   * Retrieves the stores state
+   * @param  {String} name Stores name
+   * @return {Mixed}      Stores mutable state
+   */
+  getStoreState(name) {
+    const store = this.getStore(name);
+
+    return store.getMutableState();
+  }
+
+  /**
    * Proxy to fluxapp.getActions
    * @param {String} namespace
    */

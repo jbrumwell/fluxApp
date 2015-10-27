@@ -145,6 +145,12 @@ module.exports = {
     return this.context.flux.getStore(name.trim());
   },
 
+  getStoreState : function getStoreState(name) {
+    var store = this.getStore(name);
+
+    return store.getMutableState();
+  },
+
   /**
    * Proxy to fluxApp.getActions
    * @param {String} namespace
