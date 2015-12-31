@@ -217,7 +217,7 @@ export default class BaseStore extends EventEmitter {
     const currentState = this.getMutableState();
     const isEqual = this._isEqual(state);
 
-    this.state = isEqual ? currentState : immutable(currentState).merge(state);
+    this.state = isEqual ? this.state : immutable(currentState).merge(state);
 
     if (! noEvent && ! isEqual) {
       this.emitChange();
