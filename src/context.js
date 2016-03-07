@@ -4,6 +4,13 @@ var _ = require('lodash');
 var Dispatcher = require('./dispatcher');
 var Promise = require('bluebird');
 var React = require('react');
+var ReactDOM;
+
+try {
+  ReactDOM = require('react-dom');
+} catch (e) {
+  ReactDOM = React;
+}
 
 function FluxAppContext(fluxApp, contextMethods, state) {
   var self = this;
@@ -368,7 +375,7 @@ FluxAppContext.prototype.renderToString = function renderToString(path, options)
 FluxAppContext.prototype.render = function render(path, options) {
   return this.getPageContext(path, options).then(function _render(page) {
     if (page && page.element) {
-      React.render(
+      ReactDOM.render(
         page.element,
         options.container
       );
