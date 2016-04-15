@@ -277,14 +277,7 @@ export default class BaseStore extends EventEmitter {
    * Inform listeners that the store has updated
    */
   emitChange() {
-    if (this.changed !== true) {
-      this.changed = true;
-
-      process.nextTick(() => {
-        this.emit(CHANGE_EVENT, this.getMutableState(), this);
-        this.changed = false;
-      });
-    }
+    this.emit(CHANGE_EVENT, this.getMutableState(), this);
 
     return this;
   }
