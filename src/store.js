@@ -6,6 +6,8 @@ import namespaceTransform from './util/namespaceTransform';
 const CHANGE_EVENT = 'changed';
 
 export default class BaseStore extends EventEmitter {
+  changed = false;
+
   constructor(context) {
     super();
 
@@ -275,7 +277,14 @@ export default class BaseStore extends EventEmitter {
    * Inform listeners that the store has updated
    */
   emitChange() {
-    this.emit(CHANGE_EVENT, this.getMutableState(), this);
+    if (this.changed !== true) {
+      this.changed = true;
+
+      process.nextTick(() => {
+        this.emit(CHANGE_EVENT, this.getMutableState(), this);
+        this.changed = false;
+      });
+    }
 
     return this;
   }
