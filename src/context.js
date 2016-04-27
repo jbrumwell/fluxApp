@@ -5,11 +5,14 @@ var Dispatcher = require('./dispatcher');
 var Promise = require('bluebird');
 var React = require('react');
 var ReactDOM;
+var ReactDOMServer;
 
 try {
   ReactDOM = require('react-dom');
+  ReactDOMServer = require('react-dom/server');
 } catch (e) {
   ReactDOM = React;
+  ReactDOMServer = React;
 }
 
 function FluxAppContext(fluxApp, contextMethods, state) {
@@ -357,7 +360,7 @@ FluxAppContext.prototype.renderToString = function renderToString(path, options)
 
   return this.getPageContext(path, options).then(function _renderToString(page) {
     if (page && page.element) {
-      page.element = React.renderToString(page.element);
+      page.element = ReactDOMServer.renderToString(page.element);
       self.destroy();
     }
 
