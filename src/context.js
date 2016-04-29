@@ -58,7 +58,7 @@ FluxAppContext.prototype.aliveCheck = function aliveCheck(name) {
   if (this.destroyed === true) {
     name = name || 'Uknown';
 
-    throw new Error('Fluxapp: Context#' + name +' called after being destroyed');
+    throw new Error('Fluxapp: Context#' + name + ' called after being destroyed');
   }
 };
 
@@ -161,7 +161,7 @@ FluxAppContext.prototype.getDispatcher = function getDispatcher() {
 * @param {String} input
 */
 FluxAppContext.prototype.getActionType = function getActionType(input) {
-  this.aliveCheck('getActionType(' + input +')');
+  this.aliveCheck('getActionType(' + input + ')');
 
   return this._fluxApp.getActionType(input);
 };
@@ -311,8 +311,8 @@ FluxAppContext.prototype._getPageContext = function _getPageContext(request, opt
         return {
           element: Element,
           state: options.dehydrate ? self.dehydrate() : {},
-          method: options.method,
-        }
+          method: options.method
+        };
       });
     }
 
@@ -344,7 +344,7 @@ FluxAppContext.prototype.getPageContext = function getPageContext(path, options)
 
   return request ? this._getPageContext(request, options || {}) : Promise.resolve({
     element: false,
-    state: {},
+    state: {}
   });
 };
 
@@ -417,7 +417,7 @@ FluxAppContext.prototype.dehydrate = function dehydrate() {
   this.aliveCheck('dehydrate()');
 
   return {
-     stores : this._dehydrateStores()
+    stores : this._dehydrateStores(),
   };
 };
 
@@ -426,7 +426,7 @@ FluxAppContext.prototype.dehydrate = function dehydrate() {
 *
 * @param {Object} state
 */
- FluxAppContext.prototype._rehydrateStores = function _rehydrateStores(state) {
+FluxAppContext.prototype._rehydrateStores = function _rehydrateStores(state) {
   var stores = this._stores;
 
   if (state) {
@@ -445,13 +445,13 @@ FluxAppContext.prototype.dehydrate = function dehydrate() {
 * @return {fluxAppContext}
 */
 FluxAppContext.prototype.rehydrate = function rehydrate(state) {
- this.aliveCheck('rehydrate()');
+  this.aliveCheck('rehydrate()');
 
- if (state.stores) {
-   this._rehydrateStores(state.stores);
- }
+  if (state.stores) {
+    this._rehydrateStores(state.stores);
+  }
 
- return this;
+  return this;
 };
 
 module.exports = FluxAppContext;
