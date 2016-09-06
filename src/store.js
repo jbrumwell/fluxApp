@@ -144,7 +144,15 @@ export default class BaseStore extends EventEmitter {
     return this.context.getStore(name);
   }
 
-  /*
+  /**
+   * Get a stores mutable state
+   * @param {Object} name
+   */
+  getStoreState(name) {
+    return this.getStore(name).getMutableState();
+  }
+
+  /**
    * Process a dispatched event
    * @param {Object} payload
    */
