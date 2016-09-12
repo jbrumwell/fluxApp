@@ -181,6 +181,15 @@ export default class fluxappComponent extends Component {
   }
 
   /**
+   * Proxy to fluxapp.hasStore
+   *
+   * @param {String} name
+   */
+  hasStore(name) {
+    return this.context.flux.hasStore(name.trim());
+  }
+
+  /**
    * Retrieves the stores state
    * @param  {String} name Stores name
    * @return {Mixed}      Stores mutable state
