@@ -1,3 +1,8 @@
-.babelrc
 src
 test
+test-src
+docs
+.babelrc
+.editorconfig
+.eslintrc
+karma.conf.js
