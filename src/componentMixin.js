@@ -1,42 +1,40 @@
-'use strict';
-var React = require('react');
+import React from 'react';
 
-module.exports = {
-  contextTypes: {
-    flux: React.PropTypes.object.isRequired
+export default {
+  contextTypes : {
+    flux : React.PropTypes.object.isRequired,
   },
 
   /**
    * Initiate the action handlers and store bindings
    */
-  componentDidMount : function componentDidMount() {
-    var self = this;
-    var fluxApp = this.context.flux;
-    var flux = this.flux;
+  componentDidMount() {
+    const fluxApp = this.context.flux;
+    const flux = this.flux;
 
     this._actionMapper = {};
     this._storeMapper = {};
 
     if (flux) {
       if (flux.actions) {
-        Object.keys(flux.actions).forEach(function iterateAction(method) {
-          if (typeof self[method] !== 'function') {
+        Object.keys(flux.actions).forEach((method) => {
+          if (typeof this[method] !== 'function') {
             throw Error('fluxapp:componentMixin flux action method not found ' + method);
           }
 
-          self.bindActions(flux.actions[ method ], self[ method ]);
+          this.bindActions(flux.actions[ method ], this[ method ]);
         });
 
         this.dispatchToken = fluxApp.getDispatcher().register(this.onDispatch);
       }
 
       if (flux.stores) {
-        Object.keys(flux.stores).forEach(function iterateAction(method) {
-          if (typeof self[method] !== 'function') {
+        Object.keys(flux.stores).forEach((method) => {
+          if (typeof this[method] !== 'function') {
             throw Error('fluxapp:componentMixin flux store method not found ' + method);
           }
 
-          self.bindStores(flux.stores[ method ], method);
+          this.bindStores(flux.stores[ method ], method);
         });
       }
     }
@@ -45,18 +43,17 @@ module.exports = {
   /**
    * Unregister the dispatch token and unbind stores
    */
-  componentWillUnmount : function componentWillUnmount() {
-    var fluxApp = this.context.flux;
-    var self = this;
-    var flux = this.flux;
+  componentWillUnmount() {
+    const fluxApp = this.context.flux;
+    const flux = this.flux;
 
     if (this.dispatchToken) {
       fluxApp.getDispatcher().unregister(this.dispatchToken);
     }
 
     if (flux && flux.stores) {
-      Object.keys(flux.stores).forEach(function iterateAction(method) {
-        self.unbindStores(flux.stores[ method ], self[ method ]);
+      Object.keys(flux.stores).forEach((method) => {
+        this.unbindStores(flux.stores[ method ], this[ method ]);
       });
     }
   },
@@ -67,20 +64,19 @@ module.exports = {
    * @param {Object}   actionTypes
    * @param {Function} cb
    */
-  bindActions : function bindActions(actionTypes, cb) {
-    var namespaceTransform = require('./util/namespaceTransform');
-    var self = this;
+  bindActions(actionTypes, cb) {
+    const namespaceTransform = require('./util/namespaceTransform');
 
     actionTypes = Array.isArray(actionTypes) ? actionTypes : [ actionTypes ];
 
-    actionTypes.forEach(function mapActionType(actionType) {
+    actionTypes.forEach((actionType) => {
       var key = namespaceTransform(actionType);
 
       if (key.split('_').length !== 3) {
         throw new Error('Components may only bind to before, failed and after events');
       }
 
-      self._actionMapper[ key ] = cb;
+      this._actionMapper[ key ] = cb;
     });
   },
 
@@ -90,19 +86,20 @@ module.exports = {
    * @param {Object}   storeInstances
    * @param {Function} cb
    */
-  bindStores : function bindStores(storeInstances, method) {
-    var self = this;
-    var fluxApp = this.context.flux;
-    var cb = this[ method ];
+  bindStores(storeInstances, method) {
+    const fluxApp = this.context.flux;
+    const cb = this[ method ];
 
     storeInstances = Array.isArray(storeInstances) ? storeInstances : [ storeInstances ];
 
-    storeInstances.forEach(function mapStoreBindType(store) {
+    storeInstances.forEach((store) => {
+      const self = this;
+
       function onlyMounted() {
         var args = ['setState', 'replaceState'].indexOf(method) !== -1 ? [ arguments[0] ] : arguments;
 
         if (self.isMounted()) {
-          cb.apply(self, args);
+          cb.apply(this, args);
         }
       }
 
@@ -122,12 +119,12 @@ module.exports = {
    * @param {Object}   storeInstances
    * @param {Function} cb
    */
-  unbindStores : function bindStores(storeInstances, cb) {
-    var fluxApp = this.context.flux;
+  unbindStores(storeInstances, cb) {
+    const fluxApp = this.context.flux;
 
     storeInstances = Array.isArray(storeInstances) ? storeInstances : [ storeInstances ];
 
-    storeInstances.forEach(function mapStoreUnbindType(store) {
+    storeInstances.forEach((store) => {
       if (typeof store === 'string') {
         store = fluxApp.getStore(store);
       }
@@ -141,21 +138,19 @@ module.exports = {
    *
    * @param {String} name
    */
-  getStore : function getStore(name) {
+  getStore(name) {
     return this.context.flux.getStore(name.trim());
   },
 
-  getStoreState : function getStoreState(name) {
-    var store = this.getStore(name);
-
-    return store.getMutableState();
+  getStoreState(name) {
+    return this.getStore(name).getMutableState();
   },
 
   /**
    * Proxy to fluxApp.getActions
    * @param {String} namespace
    */
-  getActions : function getActions(namespace) {
+  getActions(namespace) {
     return this.context.flux.getActions(namespace);
   },
 
@@ -165,8 +160,8 @@ module.exports = {
    * @param {String} namespace
    * @param {String} method
    */
-  getAction : function getAction(namespace, method) {
-    var actions = this.getActions(namespace);
+  getAction(namespace, method) {
+    const actions = this.getActions(namespace);
 
     if (! actions[method]) {
       throw new Error('Method `' + method + '` not found in namespace `' + namespace + '`');
@@ -185,9 +180,9 @@ module.exports = {
    *
    * @param {Object} payload
    */
-  onDispatch : function onDispatch(payload) {
+  onDispatch(payload) {
     if (this.isMounted() && this._actionMapper[ payload.actionType ]) {
       this._actionMapper[ payload.actionType ](payload.payload, payload.actionType);
     }
-  }
+  },
 };
