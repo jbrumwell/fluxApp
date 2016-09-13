@@ -209,6 +209,14 @@ export default class fluxappComponent extends Component {
   }
 
   /**
+   * Proxy to fluxapp.hasActions
+   * @param {String} namespace
+   */
+  hasActions(namespace) {
+    return this.context.flux.hasActions(namespace);
+  }
+
+  /**
    * Retrieves an individual action method
    *
    * @param {String} namespace
