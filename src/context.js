@@ -220,7 +220,7 @@ export default class FluxAppContext {
   */
   bindContextMethods(methods) {
     _.each(methods, (fn, key) => {
-      this[key] = () => {
+      this[key] = function() {
         this.aliveCheck(key);
 
         return fn.apply(this, arguments);
