@@ -179,7 +179,7 @@ export default class FluxAppContext {
       let result;
 
       if (options.dehydrate || ! options.state) {
-        result = route.loader(request, this).then(function() {
+        result = route.loader(request, this).then(() => {
           return {
             element : Element,
             state : options.dehydrate ? this.dehydrate() : {},
