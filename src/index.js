@@ -116,7 +116,7 @@ FluxApp.prototype.registerPlugins = function registerPlugins(plugins) {
   var self = this;
 
   _.each(plugins, function _registerPlugin(plugin, name) {
-     self.registerPlugin(name, plugin);
+    self.registerPlugin(name, plugin);
   });
 
   return this;

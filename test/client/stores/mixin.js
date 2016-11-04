@@ -19,6 +19,10 @@ var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
 
+var _libDom = require('../lib/dom');
+
+var _libDom2 = _interopRequireDefault(_libDom);
+
 var _lib = require('../../../lib');
 
 var _lib2 = _interopRequireDefault(_lib);
@@ -36,13 +40,13 @@ exports['default'] = function () {
 
       document.body.appendChild(elem);
 
-      return _react2['default'].render(_react2['default'].createElement(ContextWrapper, { handler: Component, context: context }), elem);
+      return _libDom2['default'].render(_react2['default'].createElement(ContextWrapper, { handler: Component, context: context }), elem);
     }
 
     afterEach(function () {
       if (renderedComponent) {
-        var elem = renderedComponent.getDOMNode().parentNode;
-        _react2['default'].unmountComponentAtNode(elem);
+        var elem = _libDom2['default'].findDOMNode(renderedComponent).parentNode;
+        _libDom2['default'].unmountComponentAtNode(elem);
         document.body.removeChild(elem);
       }
 
@@ -193,8 +197,8 @@ exports['default'] = function () {
 
       expect(spy.called).to.equal(true);
 
-      var elem = renderedComponent.getDOMNode().parentNode;
-      _react2['default'].unmountComponentAtNode(elem);
+      var elem = _libDom2['default'].findDOMNode(renderedComponent).parentNode;
+      _libDom2['default'].unmountComponentAtNode(elem);
       document.body.removeChild(elem);
 
       renderedComponent = null;

@@ -1,5 +1,6 @@
 /* global describe, it, sinon, document */
 import React from 'react';
+import DOM from './lib/dom';
 import fluxapp, { Component } from '../../lib';
 import { expect } from 'chai';
 
@@ -38,7 +39,7 @@ describe('Component', function() {
 
     document.body.appendChild(elem);
 
-    return React.render((
+    return DOM.render((
       <ContextWrapper handler={Comp} context={context} spies={spies} />
     ), elem);
   }
@@ -63,8 +64,8 @@ describe('Component', function() {
         un,
       });
 
-      const elem = renderedComponent.getDOMNode().parentNode;
-      React.unmountComponentAtNode(elem);
+      const elem = DOM.findDOMNode(renderedComponent).parentNode;
+      DOM.unmountComponentAtNode(elem);
       document.body.removeChild(elem);
 
       expect(un.callCount).to.equal(1);
@@ -97,8 +98,8 @@ describe('Component', function() {
         un,
       });
 
-      const elem = renderedComponent.getDOMNode().parentNode;
-      React.unmountComponentAtNode(elem);
+      const elem = DOM.findDOMNode(renderedComponent).parentNode;
+      DOM.unmountComponentAtNode(elem);
       document.body.removeChild(elem);
 
       expect(un.callCount).to.equal(2);
