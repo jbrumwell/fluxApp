@@ -105,7 +105,7 @@ export default class BaseActions {
       return [ actionType, result ];
     })
     .catch((err) => {
-      this._dispatchAction(namespaceTransform('action.failed'), {
+      return this._dispatchAction(namespaceTransform('action.failed'), {
         actionType : actionType,
         args : args,
         error : err,
