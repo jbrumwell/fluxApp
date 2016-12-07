@@ -220,7 +220,7 @@ export default class fluxappComponent extends Component {
    * Proxy to fluxapp.hasAction
    * @param {String} namespace
    */
-  hasActions(namespace, action) {
+  hasAction(namespace, action) {
     return this.context.flux.hasAction(namespace, action);
   }
 
