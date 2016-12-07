@@ -275,8 +275,15 @@ export default class FluxAppContext {
     return store;
   }
 
+  /**
+   * Check if a store is registered
+   *
+   * @param {Object|Null} name
+   */
   hasStore(name) {
     this.aliveCheck(`hasStore(${name})`);
+
+    return !! this._stores[name];
   }
 
   /**
