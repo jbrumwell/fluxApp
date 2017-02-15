@@ -192,7 +192,7 @@ describe('actions', function () {
     function listener(result) {
       dispatcher.unregister(dispatchId);
       expect(result.actionType).to.equal(_lib2['default'].getActionType('test.method:before'));
-      expect(result.payload).to.be.undefined();
+      expect(result.payload).to.be['instanceof'](Array);
       done();
     }
 

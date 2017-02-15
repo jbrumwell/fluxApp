@@ -181,8 +181,12 @@ export default {
    * @param {Object} payload
    */
   onDispatch(payload) {
+    let result;
+
     if (this.isMounted() && this._actionMapper[ payload.actionType ]) {
-      this._actionMapper[ payload.actionType ](payload.payload, payload.actionType);
+      result = this._actionMapper[ payload.actionType ](payload.payload, payload.actionType);
     }
+
+    return result;
   },
 };

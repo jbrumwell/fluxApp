@@ -1,6 +1,13 @@
 import Promise from 'bluebird';
 import namespaceTransform from './util/namespaceTransform';
 import _ from 'lodash';
+import {
+  ActionDispatchError,
+  BeforeDispatchError,
+  AfterDispatchError,
+  FailedDispatchError,
+  ListenerDispatchError,
+} from './errors';
 
 export default class BaseActions {
   constructor(namespace, context) {
@@ -31,6 +38,8 @@ export default class BaseActions {
     return this.dispatcher.dispatch({
       actionType : namespaceTransform(namespace, 'before'),
       payload : args,
+    }).catch((err) => {
+      throw new BeforeDispatchError(err);
     });
   }
 
@@ -41,7 +50,9 @@ export default class BaseActions {
     return this.dispatcher.dispatch({
       actionType : actionType,
       payload : result,
-    });
+    }).catch((err) => {
+      throw new ListenerDispatchError(err);
+    });;
   }
 
   /**
@@ -50,19 +61,31 @@ export default class BaseActions {
   _dispatchAfter(namespace) {
     return this.dispatcher.dispatch({
       actionType : namespaceTransform(namespace, 'after'),
-    });
+    }).catch((err) => {
+      throw new AfterDispatchError(err);
+    });;
   }
 
   /**
   * Dispatches the action failed event
   */
-  _dispatchFailed(namespace, args, error) {
+  _dispatchFailed(namespace, args, error, type = 'unknown') {
     return this.dispatcher.dispatch({
       actionType : namespaceTransform(namespace, 'failed'),
       payload : {
         args,
         error,
+        type,
       },
+    }).catch((err) => {
+      throw new FailedDispatchError(err);
+    }).tap(() => {
+      return this._dispatchAction(namespaceTransform('action.failed'), {
+        actionType : namespaceTransform(namespace),
+        args,
+        error,
+        type,
+      });
     });
   }
 
@@ -79,37 +102,50 @@ export default class BaseActions {
    */
   _invokeAction(method, handler) {
     const namespace = `${this.namespace}.${method}`;
-    const args = Array.prototype.slice.call(arguments, 2);
-    const response = Promise.method(handler).apply(this, args);
-    const pending = response.isPending();
-    let actionDispatch = Promise.resolve();
     const actionType = namespaceTransform(namespace);
+    const args = Array.prototype.slice.call(arguments, 2);
 
-    this._dispatchBefore(namespace);
-
-    if (pending) {
-      actionDispatch = response.then(
-        this._dispatchAction.bind(this, actionType)
-      ).then(
-        this._dispatchAfter.bind(this, namespace)
-      ).catch(this._dispatchFailed.bind(this, namespace, args));
-    } else if (response.isRejected()) {
-      this._dispatchFailed(namespace, args, response.reason());
-    } else {
-      actionDispatch = this._dispatchAction(actionType, response.value());
-      actionDispatch.then(this._dispatchAfter.bind(this, namespace));
-    }
-
-    return Promise.join(response, actionDispatch)
-    .spread((result) => {
-      return [ actionType, result ];
+    return Promise.resolve()
+    .tap(() => {
+      return this._dispatchBefore(namespace, args);
+    })
+    .then(() => {
+      return Promise.method(handler).apply(this, args)
+      .catch((err) => {
+        throw new ActionDispatchError(err);
+      });
+    })
+    .tap((response) => {
+      return this._dispatchAction(actionType, response);
+    })
+    .tap(() => {
+      return this._dispatchAfter(namespace);
+    })
+    .then((response) => {
+      return [ actionType, response ];
+    })
+    .catch(BeforeDispatchError, (err) => {
+      return this._dispatchFailed(namespace, args, err, 'before');
+    })
+    .catch(ActionDispatchError, (err) => {
+      return this._dispatchFailed(namespace, args, err, 'action');
+    })
+    .catch(ListenerDispatchError, (err) => {
+      return this._dispatchFailed(namespace, args, err, 'listener');
+    })
+    .catch(AfterDispatchError, (err) => {
+      return this._dispatchFailed(namespace, args, err, 'after');
+    })
+    .catch(FailedDispatchError, (err) => {
+      return this._dispatchAction(namespaceTransform('action.failed'), {
+        actionType,
+        args,
+        error : err,
+        type : 'failed',
+      });
     })
     .catch((err) => {
-      return this._dispatchAction(namespaceTransform('action.failed'), {
-        actionType : actionType,
-        args : args,
-        error : err,
-      });
+      return this._dispatchFailed(namespace, args, err, 'unknown');
     });
   }
 
@@ -142,24 +178,5 @@ export default class BaseActions {
      return actions[method].bind(actions);
    }
 }
-
-/*
-export default (namespace, handlers) => {
-  function Actions() {
-    BaseActions.apply(this, arguments);
-  }
-
-  console.log(BaseActions.prototype);
-
-  Actions.prototype = _.create(BaseActions.prototype);
-
-  Object.keys(handlers).forEach(function(key) {
-    Actions.prototype[ key ] = _.partial(function() {
-      return this._invokeAction.apply(this, arguments);
-    }, [ namespace, key ], handlers[ key ]);
-  });
-
-  return Actions.bind(null, namespace);
-};*/
 
 export default BaseActions;

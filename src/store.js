@@ -158,16 +158,17 @@ export default class BaseStore extends EventEmitter {
    */
   _processActionEvent(payload) {
     const method = this._actionTypes[ payload.actionType ];
+    let result;
 
     if (method && this[ method ]) {
       if (['replaceState', 'setState'].indexOf(method) === -1) {
-        this[ method ](payload.payload, payload.actionType);
+        result = this[ method ](payload.payload, payload.actionType);
       } else {
-        this[ method ](payload.payload);
+        result = this[ method ](payload.payload);
       }
     }
 
-    return this;
+    return result;
   }
 
   /**

@@ -256,9 +256,12 @@ export default class fluxappComponent extends Component {
     */
    onDispatch(payload) {
      const map = this._actionMap;
+     let result;
 
      if (map[ payload.actionType ]) {
-       map[ payload.actionType ](payload.payload, payload.actionType);
+       result = map[ payload.actionType ](payload.payload, payload.actionType);
      }
+
+     return result;
    }
 }

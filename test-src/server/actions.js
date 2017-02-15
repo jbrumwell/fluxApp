@@ -120,7 +120,7 @@ describe('actions', () => {
     function listener(result) {
       dispatcher.unregister(dispatchId);
       expect(result.actionType).to.equal(fluxapp.getActionType('test.method:before'));
-      expect(result.payload).to.be.undefined();
+      expect(result.payload).to.be.instanceof(Array);
       done();
     }
 
