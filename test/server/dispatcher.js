@@ -44,20 +44,20 @@ describe('Dispatcher', function () {
   });
 
   it('should execute all subscriber async callbacks', function (done) {
-    dispatcher.register(function () {
+    dispatcher.register(function (payload) {
       return new Promise(function (resolve) {
-        setTimeout(function () {
+        setImmediate(function () {
           callbackA();
           resolve();
-        }, 350);
+        });
       });
     });
     dispatcher.register(function () {
       return new Promise(function (resolve) {
-        setTimeout(function () {
+        setImmediate(function () {
           callbackB();
           resolve();
-        }, 150);
+        });
       });
     });
 
@@ -69,7 +69,7 @@ describe('Dispatcher', function () {
       expect(callbackB.callCount).to.equal(1);
       expect(callbackB.withArgs(payload).called);
 
-      dispatcher.dispatch(payload).then(function () {
+      return dispatcher.dispatch(payload).then(function () {
         expect(callbackA.callCount).to.equal(2);
         expect(callbackA.withArgs(payload).calledTwice);
 
@@ -381,11 +381,11 @@ describe('Dispatcher', function () {
 
   it('should throw on multi-circular dependencies', function (done) {
     var tokenA = dispatcher.register(function () {
-      dispatcher.waitFor([tokenB])['catch'](done.bind(null, null));
+      return dispatcher.waitFor([tokenB])['catch'](done.bind(null, null));
     });
 
     var tokenB = dispatcher.register(function () {
-      dispatcher.waitFor([tokenA])['catch'](done.bind(null, null));
+      return dispatcher.waitFor([tokenA])['catch'](done.bind(null, null));
     });
 
     var payload = {};

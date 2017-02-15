@@ -12,11 +12,10 @@ const _prefix = 'ID_';
  * called from within other actions
  */
 export default class Dispatcher {
-  constructor() {
-    this._openPromises = [];
-    this._callbacks = {};
-    this._queued = [];
-  }
+
+  _openPromises = [];
+  _callbacks = [];
+  _queued = [];
 
   /**
    * Register a callback with the dispatcher
@@ -57,15 +56,9 @@ export default class Dispatcher {
    * @return {Promise}
    */
   _queue(payload) {
-    let resolver;
-
-    const promise = new Promise(function(resolve) {
-      resolver = resolve;
+    return new Promise((resolve, reject) => {
+      this._queued.push([ payload, resolve, reject ]);
     });
-
-    this._queued.push([ payload, resolver ]);
-
-    return promise;
   }
 
   /**
@@ -76,8 +69,9 @@ export default class Dispatcher {
       const args = this._queued.shift();
       const payload = args[0];
       const resolve = args[1];
+      const reject = args[2];
 
-      this.dispatch(payload).then(resolve);
+      this.dispatch(payload).then(resolve, reject);
     }
   }
 
@@ -86,26 +80,35 @@ export default class Dispatcher {
    *
    * @param {Array} promises
    */
-  _dispatchBatch(promises) {
-    return Promise.resolve(Object.keys(promises))
-                  .each((idx) => {
-                    const cb = this._pending[idx];
+  _dispatchBatch(batch) {
+    return Promise.using(this._batchPromise(batch), (idxs) => {
+      return Promise.each(idxs, (idx) => {
+        this._dispatchingId = idx;
+        this._openPromises.push(idx);
 
-                    // this promise was already resolved with a waitfor
-                    /* eslint-disable consistent-return */
-                    if (! cb) {
-                      return;
-                    }
+        return Promise.using(this._jobPromise(idx), () => {
+          const cb = this._pending[idx];
 
+          return cb ? cb() : null;
+        });
+      });
+    });
+  }
 
-                    this._dispatchingId = idx;
-                    this._openPromises.push(idx);
+  _batchPromise(promises) {
+    return Promise.resolve(_.keys(promises))
+    .disposer(() => {
+      this._dispatchingId = null;
 
-                    return cb().finally(this._postDispatch.bind(this, idx));
-                    /* eslint-enable consistent-return */
-                  }).finally(() => {
-                    this._dispatchingId = null;
-                  });
+      return this._stopDispatching();
+    });
+  }
+
+  _jobPromise(idx) {
+    return Promise.resolve()
+    .disposer(() => {
+      return this._postDispatch(idx);
+    });
   }
 
   /**
@@ -134,7 +137,7 @@ export default class Dispatcher {
       };
     });
 
-    return this._dispatchBatch(this._callbacks, payload).finally(this._stopDispatching.bind(this));
+    return this._dispatchBatch(this._callbacks);
   }
 
   /*
@@ -176,7 +179,7 @@ export default class Dispatcher {
       }
     });
 
-    return Object.keys(pending).length ? this._dispatchBatch(pending) : Promise.resolve();
+    return _.keys(pending).length ? this._dispatchBatch(pending) : Promise.resolve();
   }
 
   /*
@@ -191,9 +194,7 @@ export default class Dispatcher {
     if (idx) {
       delete this._pending[idx];
 
-      this._openPromises = this._openPromises.filter(function removeId(id) {
-        return idx !== id;
-      });
+      this._openPromises = this._openPromises.filter((id) => idx !== id);
     }
   }
 }
