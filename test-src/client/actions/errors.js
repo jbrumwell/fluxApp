@@ -3,6 +3,13 @@ import React from 'react';
 import DOM from '../lib/dom';
 import Promise from 'bluebird';
 import fluxapp, { BaseActions, BaseStore, Component } from '../../../lib';
+import {
+  ActionDispatchError,
+  BeforeDispatchError,
+  AfterDispatchError,
+  FailedDispatchError,
+  ListenerDispatchError,
+} from '../../../lib/errors';
 
 export default () => {
   describe('errors', () => {
@@ -39,14 +46,29 @@ export default () => {
           return new Promise((resolve, reject) => {
             setTimeout(resolve, 500);
           }).then(() => {
-            return {};
+            return {
+              sync : false,
+            };
           });
         }
 
-        storeSync() {}
+        storeSync() {
+          return {
+            sync : true,
+          }
+        }
 
-        sync() {}
-        async() {}
+        sync() {
+          return {
+            sync : true,
+          };
+        }
+
+        async() {
+          return {
+            sync : false,
+          };
+        }
       };
 
       fluxapp.registerActions('testing', actionClass);
@@ -114,11 +136,29 @@ export default () => {
       });
 
       context.getActions('testing').error()
-      .then(() => {
+      .then((result) => {
         expect(globalSpy.called).to.equal(true);
         expect(spy.called).to.equal(true);
-        done();
-      });
+
+        expect(result).to.be.a('object');
+
+        expect(result).to.include.keys([
+          'status',
+          'error',
+          'previousError',
+          'response',
+          'args',
+          'namespace',
+          'actionType',
+        ]);
+        expect(result.status).to.equal(0);
+        expect(result.args).to.eql([]);
+        expect(result.error).to.be.instanceof(ActionDispatchError);
+        expect(result.previousError).to.be.null;
+        expect(result.response).to.be.null;
+        expect(result.namespace).to.equal('testing.error');
+        expect(result.actionType).to.equal(fluxapp.getActionType('testing.error'));
+      }).asCallback(done);
 
       const Dispatcher = context.getDispatcher();
 
@@ -157,11 +197,29 @@ export default () => {
       });
 
       context.getActions('testing').asyncError()
-      .then(() => {
+      .then((result) => {
         expect(globalSpy.called).to.equal(true);
         expect(spy.called).to.equal(true);
-        done();
-      });
+
+        expect(result).to.be.a('object');
+
+        expect(result).to.include.keys([
+          'status',
+          'error',
+          'previousError',
+          'response',
+          'args',
+          'namespace',
+          'actionType',
+        ]);
+        expect(result.status).to.equal(0);
+        expect(result.args).to.eql([]);
+        expect(result.error).to.be.instanceof(ActionDispatchError);
+        expect(result.previousError).to.be.null;
+        expect(result.response).to.be.null;
+        expect(result.namespace).to.equal('testing.asyncError');
+        expect(result.actionType).to.equal(fluxapp.getActionType('testing.asyncError'));
+      }).asCallback(done);
 
       const Dispatcher = context.getDispatcher();
 
@@ -174,7 +232,7 @@ export default () => {
       });
     });
 
-    it('store async error', (done) => {
+    it('store async error', function(done) {
       const context = fluxapp.createContext();
       const globalSpy = sinon.spy();
 
@@ -191,10 +249,29 @@ export default () => {
       });
 
       context.getActions('testing').storeAsync()
-      .then(() => {
+      .then((result) => {
+
         expect(globalSpy.called).to.equal(true);
-        done();
-      });
+
+        expect(result).to.be.a('object');
+
+        expect(result).to.include.keys([
+          'status',
+          'error',
+          'previousError',
+          'response',
+          'args',
+          'namespace',
+          'actionType',
+        ]);
+        expect(result.status).to.equal(0);
+        expect(result.args).to.eql([]);
+        expect(result.error).to.be.instanceof(ListenerDispatchError);
+        expect(result.previousError).to.be.null;
+        expect(result.response).to.be.a('object');
+        expect(result.namespace).to.equal('testing.storeAsync');
+        expect(result.actionType).to.equal(fluxapp.getActionType('testing.storeAsync'));
+      }).asCallback(done);
 
       const Dispatcher = context.getDispatcher();
 
@@ -234,10 +311,28 @@ export default () => {
       });
 
       context.getActions('testing').storeSync()
-      .then(() => {
+      .then((result) => {
         expect(globalSpy.called).to.equal(true);
-        done();
-      });
+
+        expect(result).to.be.a('object');
+
+        expect(result).to.include.keys([
+          'status',
+          'error',
+          'previousError',
+          'response',
+          'args',
+          'namespace',
+          'actionType',
+        ]);
+        expect(result.status).to.equal(0);
+        expect(result.args).to.eql([]);
+        expect(result.error).to.be.instanceof(ListenerDispatchError);
+        expect(result.previousError).to.be.null;
+        expect(result.response).to.be.a('object');
+        expect(result.namespace).to.equal('testing.storeSync');
+        expect(result.actionType).to.equal(fluxapp.getActionType('testing.storeSync'));
+      }).asCallback(done);
     });
 
     it('before sync event', (done) => {
@@ -275,10 +370,28 @@ export default () => {
       });
 
       context.getActions('testing').sync()
-      .then(() => {
+      .then((result) => {
         expect(globalSpy.called).to.equal(true);
-        done();
-      });
+
+        expect(result).to.be.a('object');
+
+        expect(result).to.include.keys([
+          'status',
+          'error',
+          'previousError',
+          'response',
+          'args',
+          'namespace',
+          'actionType',
+        ]);
+        expect(result.status).to.equal(0);
+        expect(result.args).to.eql([]);
+        expect(result.error).to.be.instanceof(BeforeDispatchError);
+        expect(result.previousError).to.be.null;
+        expect(result.response).to.be.null;
+        expect(result.namespace).to.equal('testing.sync');
+        expect(result.actionType).to.equal(fluxapp.getActionType('testing.sync'));
+      }).asCallback(done);
     });
 
     it('before async event', (done) => {
@@ -316,10 +429,28 @@ export default () => {
       });
 
       context.getActions('testing').async()
-      .then(() => {
+      .then((result) => {
         expect(globalSpy.called).to.equal(true);
-        done();
-      });
+
+        expect(result).to.be.a('object');
+
+        expect(result).to.include.keys([
+          'status',
+          'error',
+          'previousError',
+          'response',
+          'args',
+          'namespace',
+          'actionType',
+        ]);
+        expect(result.status).to.equal(0);
+        expect(result.args).to.eql([]);
+        expect(result.error).to.be.instanceof(BeforeDispatchError);
+        expect(result.previousError).to.be.null;
+        expect(result.response).to.be.null;
+        expect(result.namespace).to.equal('testing.async');
+        expect(result.actionType).to.equal(fluxapp.getActionType('testing.async'));
+      }).asCallback(done);
     });
 
     it('after sync event', (done) => {
@@ -357,10 +488,28 @@ export default () => {
       });
 
       context.getActions('testing').sync()
-      .then(() => {
+      .then((result) => {
         expect(globalSpy.called).to.equal(true);
-        done();
-      });
+
+        expect(result).to.be.a('object');
+
+        expect(result).to.include.keys([
+          'status',
+          'error',
+          'previousError',
+          'response',
+          'args',
+          'namespace',
+          'actionType',
+        ]);
+        expect(result.status).to.equal(0);
+        expect(result.args).to.eql([]);
+        expect(result.error).to.be.instanceof(AfterDispatchError);
+        expect(result.previousError).to.be.null;
+        expect(result.response).to.be.a('object');
+        expect(result.namespace).to.equal('testing.sync');
+        expect(result.actionType).to.equal(fluxapp.getActionType('testing.sync'));
+      }).asCallback(done);
     });
 
     it('after async event', (done) => {
@@ -398,10 +547,28 @@ export default () => {
       });
 
       context.getActions('testing').async()
-      .then(() => {
+      .then((result) => {
         expect(globalSpy.called).to.equal(true);
-        done();
-      });
+
+        expect(result).to.be.a('object');
+
+        expect(result).to.include.keys([
+          'status',
+          'error',
+          'previousError',
+          'response',
+          'args',
+          'namespace',
+          'actionType',
+        ]);
+        expect(result.status).to.equal(0);
+        expect(result.args).to.eql([]);
+        expect(result.error).to.be.instanceof(AfterDispatchError);
+        expect(result.previousError).to.be.null;
+        expect(result.response).to.be.a('object');
+        expect(result.namespace).to.equal('testing.async');
+        expect(result.actionType).to.equal(fluxapp.getActionType('testing.async'));
+      }).asCallback(done);
     });
 
     it('failed sync event', (done) => {
@@ -439,10 +606,28 @@ export default () => {
       });
 
       context.getActions('testing').error()
-      .then(() => {
+      .then((result) => {
         expect(globalSpy.called).to.equal(true);
-        done();
-      });
+
+        expect(result).to.be.a('object');
+
+        expect(result).to.include.keys([
+          'status',
+          'error',
+          'previousError',
+          'response',
+          'args',
+          'namespace',
+          'actionType',
+        ]);
+        expect(result.status).to.equal(0);
+        expect(result.args).to.eql([]);
+        expect(result.error).to.be.instanceof(FailedDispatchError);
+        expect(result.previousError).to.be.instanceof(ActionDispatchError);
+        expect(result.response).to.be.null;
+        expect(result.namespace).to.equal('testing.error');
+        expect(result.actionType).to.equal(fluxapp.getActionType('testing.error'));
+      }).asCallback(done);
     });
 
     it('failed async event', (done) => {
@@ -480,10 +665,283 @@ export default () => {
       });
 
       context.getActions('testing').asyncError()
-      .then(() => {
+      .then((result) => {
         expect(globalSpy.called).to.equal(true);
-        done();
+
+        expect(result).to.be.a('object');
+
+        expect(result).to.include.keys([
+          'status',
+          'error',
+          'previousError',
+          'response',
+          'args',
+          'namespace',
+          'actionType',
+        ]);
+        expect(result.status).to.equal(0);
+        expect(result.args).to.eql([]);
+        expect(result.error).to.be.instanceof(FailedDispatchError);
+        expect(result.previousError).to.be.instanceof(ActionDispatchError);
+        expect(result.response).to.be.null;
+        expect(result.namespace).to.equal('testing.asyncError');
+        expect(result.actionType).to.equal(fluxapp.getActionType('testing.asyncError'));
+      }).asCallback(done);
+    });
+
+    it('previous error (before)', (done) => {
+      const context = fluxapp.createContext();
+      const globalSpy = sinon.spy();
+
+      const Comp = class TestComponent extends Component {
+        static actions = {
+          onBefore : 'testing.asyncError:before',
+          onFailed : 'testing.asyncError:failed',
+        };
+
+        onBefore() {
+          throw new Error('testing async failed');
+        }
+
+        onFailed() {
+          throw new Error('failed, failed');
+        }
+
+        render() {
+          return (
+            <h1>Hello</h1>
+          );
+        }
+      };
+
+      renderedComponent = renderComponent(Comp, {
+        context : context,
       });
+
+      const Dispatcher = context.getDispatcher();
+
+      const token = Dispatcher.register((event) => {
+        return Promise.try(() => {
+          if (event.actionType === 'ACTION_FAILED') {
+            globalSpy();
+            expect(event.payload.error.message).to.equal('failed, failed');
+            expect(event.payload.type).to.equal('failed');
+          }
+        })
+      });
+
+      context.getActions('testing').asyncError()
+      .then((result) => {
+        expect(globalSpy.called).to.equal(true);
+
+        expect(result).to.be.a('object');
+
+        expect(result).to.include.keys([
+          'status',
+          'error',
+          'previousError',
+          'response',
+          'args',
+          'namespace',
+          'actionType',
+        ]);
+        expect(result.status).to.equal(0);
+        expect(result.args).to.eql([]);
+        expect(result.error).to.be.instanceof(FailedDispatchError);
+        expect(result.previousError).to.be.instanceof(BeforeDispatchError);
+        expect(result.response).to.be.null;
+        expect(result.namespace).to.equal('testing.asyncError');
+        expect(result.actionType).to.equal(fluxapp.getActionType('testing.asyncError'));
+      }).asCallback(done);
+    });
+
+    it('previous error (after)', (done) => {
+      const context = fluxapp.createContext();
+      const globalSpy = sinon.spy();
+
+      const Comp = class TestComponent extends Component {
+        static actions = {
+          onAfter : 'testing.async:after',
+          onFailed : 'testing.async:failed',
+        };
+
+        onAfter() {
+          throw new Error('testing async failed');
+        }
+
+        onFailed() {
+          throw new Error('failed, failed');
+        }
+
+        render() {
+          return (
+            <h1>Hello</h1>
+          );
+        }
+      };
+
+      renderedComponent = renderComponent(Comp, {
+        context : context,
+      });
+
+      const Dispatcher = context.getDispatcher();
+
+      const token = Dispatcher.register((event) => {
+        if (event.actionType === 'ACTION_FAILED') {
+          globalSpy();
+          expect(event.payload.error.message).to.equal('failed, failed');
+          expect(event.payload.type).to.equal('failed');
+        }
+      });
+
+      context.getActions('testing').async()
+      .then((result) => {
+        expect(globalSpy.called).to.equal(true);
+
+        expect(result).to.be.a('object');
+
+        expect(result).to.include.keys([
+          'status',
+          'error',
+          'previousError',
+          'response',
+          'args',
+          'namespace',
+          'actionType',
+        ]);
+        expect(result.status).to.equal(0);
+        expect(result.args).to.eql([]);
+        expect(result.error).to.be.instanceof(FailedDispatchError);
+        expect(result.previousError).to.be.instanceof(AfterDispatchError);
+        expect(result.response).to.be.a('object');
+        expect(result.namespace).to.equal('testing.async');
+        expect(result.actionType).to.equal(fluxapp.getActionType('testing.async'));
+      }).asCallback(done);
+    });
+
+    it('previous error (action)', (done) => {
+      const context = fluxapp.createContext();
+      const globalSpy = sinon.spy();
+
+      const Comp = class TestComponent extends Component {
+        static actions = {
+          onFailed : 'testing.asyncError:failed',
+        };
+
+        onFailed() {
+          throw new Error('failed, failed');
+        }
+
+        render() {
+          return (
+            <h1>Hello</h1>
+          );
+        }
+      };
+
+      renderedComponent = renderComponent(Comp, {
+        context : context,
+      });
+
+      const Dispatcher = context.getDispatcher();
+
+      const token = Dispatcher.register((event) => {
+        return Promise.try(() => {
+          if (event.actionType === 'ACTION_FAILED') {
+            globalSpy();
+            expect(event.payload.error.message).to.equal('failed, failed');
+            expect(event.payload.type).to.equal('failed');
+          }
+        })
+      });
+
+      context.getActions('testing').asyncError()
+      .then((result) => {
+        expect(globalSpy.called).to.equal(true);
+
+        expect(result).to.be.a('object');
+
+        expect(result).to.include.keys([
+          'status',
+          'error',
+          'previousError',
+          'response',
+          'args',
+          'namespace',
+          'actionType',
+        ]);
+        expect(result.status).to.equal(0);
+        expect(result.args).to.eql([]);
+        expect(result.error).to.be.instanceof(FailedDispatchError);
+        expect(result.previousError).to.be.instanceof(ActionDispatchError);
+        expect(result.response).to.be.null;
+        expect(result.namespace).to.equal('testing.asyncError');
+        expect(result.actionType).to.equal(fluxapp.getActionType('testing.asyncError'));
+      }).asCallback(done);
+    });
+
+    it('uncaught event is fired', (done) => {
+      const context = fluxapp.createContext();
+      const globalSpy = sinon.spy();
+      const testSpy = sinon.spy();
+
+      const Comp = class TestComponent extends Component {
+        static actions = {
+          onFailed : 'testing.asyncError:failed',
+        };
+
+        onFailed() {
+          throw new Error('failed, failed');
+        }
+
+        render() {
+          return (
+            <h1>Hello</h1>
+          );
+        }
+      };
+
+      renderedComponent = renderComponent(Comp, {
+        context : context,
+      });
+
+      const Dispatcher = context.getDispatcher();
+
+      const token = Dispatcher.register((event) => {
+        if (event.actionType === 'ACTION_FAILED') {
+          globalSpy();
+          expect(event.payload.error.message).to.equal('failed, failed');
+          expect(event.payload.type).to.equal('failed');
+          throw new Error('Uncaught Error');
+        } else if (event.actionType === 'ACTION_UNCAUGHT') {
+          globalSpy();
+          expect(event.payload.error.message).to.equal('Uncaught Error');
+        }
+      });
+
+      context.getActions('testing').asyncError()
+      .then((result) => {
+        expect(globalSpy.callCount).to.equal(2);
+
+        expect(result).to.be.a('object');
+
+        expect(result).to.include.keys([
+          'status',
+          'error',
+          'previousError',
+          'response',
+          'args',
+          'namespace',
+          'actionType',
+        ]);
+        expect(result.status).to.equal(0);
+        expect(result.args).to.eql([]);
+        expect(result.error.message).to.equal('Uncaught Error');
+        expect(result.previousError).to.be.instanceof(ActionDispatchError);
+        expect(result.response).to.be.null;
+        expect(result.namespace).to.equal('testing.asyncError');
+        expect(result.actionType).to.equal(fluxapp.getActionType('testing.asyncError'));
+      }).asCallback(done);
     });
   });
 };

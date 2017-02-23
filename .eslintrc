@@ -106,7 +106,7 @@
 
     // legacy
     "max-depth": [ 2, 2 ],
-    "max-params": [ 2, 4 ],
+    "max-params": [ 2, 5 ],
     "max-statements": [ 1, 15 ],
     "no-bitwise": [ 2 ],
 

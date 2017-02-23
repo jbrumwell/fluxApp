@@ -69,7 +69,9 @@ export default class BaseActions {
   /**
   * Dispatches the action failed event
   */
-  _dispatchFailed(namespace, args, error, type = 'unknown') {
+  _dispatchFailed(namespace, args, error, type, result) {
+    this._handleFailed(result, error, type);
+
     return this.dispatcher.dispatch({
       actionType : namespaceTransform(namespace, 'failed'),
       payload : {
@@ -89,6 +91,15 @@ export default class BaseActions {
     });
   }
 
+  _handleFailed(result, err, type) {
+    if (result.error) {
+      result.previousError = result.error;
+    }
+
+    result.status = 0;
+    result.error = err;
+  }
+
   /**
    * Gets the action handler
    *
@@ -104,6 +115,15 @@ export default class BaseActions {
     const namespace = `${this.namespace}.${method}`;
     const actionType = namespaceTransform(namespace);
     const args = Array.prototype.slice.call(arguments, 2);
+    const result = {
+      status : 1,
+      args,
+      actionType,
+      namespace,
+      response : null,
+      error : null,
+      previousError : null,
+    };
 
     return Promise.resolve()
     .tap(() => {
@@ -116,25 +136,24 @@ export default class BaseActions {
       });
     })
     .tap((response) => {
+      result.response = response;
+
       return this._dispatchAction(actionType, response);
     })
     .tap(() => {
       return this._dispatchAfter(namespace);
     })
-    .then((response) => {
-      return [ actionType, response ];
-    })
     .catch(BeforeDispatchError, (err) => {
-      return this._dispatchFailed(namespace, args, err, 'before');
+      return this._dispatchFailed(namespace, args, err, 'before', result);
     })
     .catch(ActionDispatchError, (err) => {
-      return this._dispatchFailed(namespace, args, err, 'action');
+      return this._dispatchFailed(namespace, args, err, 'action', result);
     })
     .catch(ListenerDispatchError, (err) => {
-      return this._dispatchFailed(namespace, args, err, 'listener');
+      return this._dispatchFailed(namespace, args, err, 'listener', result);
     })
     .catch(AfterDispatchError, (err) => {
-      return this._dispatchFailed(namespace, args, err, 'after');
+      return this._dispatchFailed(namespace, args, err, 'after', result);
     })
     .catch(FailedDispatchError, (err) => {
       return this._dispatchAction(namespaceTransform('action.failed'), {
@@ -142,10 +161,20 @@ export default class BaseActions {
         args,
         error : err,
         type : 'failed',
-      });
+      })
+      .then(this._handleFailed.bind(this, result, err, 'failed'));
     })
     .catch((err) => {
-      return this._dispatchFailed(namespace, args, err, 'unknown');
+      this._handleFailed(result, err, 'uncaught');
+      return this._dispatchAction(namespaceTransform('action.uncaught'), {
+        actionType,
+        args,
+        error : err,
+        type : 'uncaught',
+      });
+    })
+    .then(() => {
+      return result;
     });
   }
 

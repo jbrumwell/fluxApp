@@ -31,6 +31,8 @@ var _lib = require('../../../lib');
 
 var _lib2 = _interopRequireDefault(_lib);
 
+var _libErrors = require('../../../lib/errors');
+
 exports['default'] = function () {
   describe('errors', function () {
     var renderedComponent = undefined;
@@ -76,18 +78,32 @@ exports['default'] = function () {
             return new _bluebird2['default'](function (resolve, reject) {
               setTimeout(resolve, 500);
             }).then(function () {
-              return {};
+              return {
+                sync: false
+              };
             });
           }
         }, {
           key: 'storeSync',
-          value: function storeSync() {}
+          value: function storeSync() {
+            return {
+              sync: true
+            };
+          }
         }, {
           key: 'sync',
-          value: function sync() {}
+          value: function sync() {
+            return {
+              sync: true
+            };
+          }
         }, {
           key: 'async',
-          value: function async() {}
+          value: function async() {
+            return {
+              sync: false
+            };
+          }
         }]);
 
         return TestActions;
@@ -191,11 +207,21 @@ exports['default'] = function () {
         context: context
       });
 
-      context.getActions('testing').error().then(function () {
+      context.getActions('testing').error().then(function (result) {
         expect(globalSpy.called).to.equal(true);
         expect(spy.called).to.equal(true);
-        done();
-      });
+
+        expect(result).to.be.a('object');
+
+        expect(result).to.include.keys(['status', 'error', 'previousError', 'response', 'args', 'namespace', 'actionType']);
+        expect(result.status).to.equal(0);
+        expect(result.args).to.eql([]);
+        expect(result.error).to.be['instanceof'](_libErrors.ActionDispatchError);
+        expect(result.previousError).to.be['null'];
+        expect(result.response).to.be['null'];
+        expect(result.namespace).to.equal('testing.error');
+        expect(result.actionType).to.equal(_lib2['default'].getActionType('testing.error'));
+      }).asCallback(done);
 
       var Dispatcher = context.getDispatcher();
 
@@ -251,11 +277,21 @@ exports['default'] = function () {
         context: context
       });
 
-      context.getActions('testing').asyncError().then(function () {
+      context.getActions('testing').asyncError().then(function (result) {
         expect(globalSpy.called).to.equal(true);
         expect(spy.called).to.equal(true);
-        done();
-      });
+
+        expect(result).to.be.a('object');
+
+        expect(result).to.include.keys(['status', 'error', 'previousError', 'response', 'args', 'namespace', 'actionType']);
+        expect(result.status).to.equal(0);
+        expect(result.args).to.eql([]);
+        expect(result.error).to.be['instanceof'](_libErrors.ActionDispatchError);
+        expect(result.previousError).to.be['null'];
+        expect(result.response).to.be['null'];
+        expect(result.namespace).to.equal('testing.asyncError');
+        expect(result.actionType).to.equal(_lib2['default'].getActionType('testing.asyncError'));
+      }).asCallback(done);
 
       var Dispatcher = context.getDispatcher();
 
@@ -299,10 +335,21 @@ exports['default'] = function () {
         context: context
       });
 
-      context.getActions('testing').storeAsync().then(function () {
+      context.getActions('testing').storeAsync().then(function (result) {
+
         expect(globalSpy.called).to.equal(true);
-        done();
-      });
+
+        expect(result).to.be.a('object');
+
+        expect(result).to.include.keys(['status', 'error', 'previousError', 'response', 'args', 'namespace', 'actionType']);
+        expect(result.status).to.equal(0);
+        expect(result.args).to.eql([]);
+        expect(result.error).to.be['instanceof'](_libErrors.ListenerDispatchError);
+        expect(result.previousError).to.be['null'];
+        expect(result.response).to.be.a('object');
+        expect(result.namespace).to.equal('testing.storeAsync');
+        expect(result.actionType).to.equal(_lib2['default'].getActionType('testing.storeAsync'));
+      }).asCallback(done);
 
       var Dispatcher = context.getDispatcher();
 
@@ -356,10 +403,20 @@ exports['default'] = function () {
         }
       });
 
-      context.getActions('testing').storeSync().then(function () {
+      context.getActions('testing').storeSync().then(function (result) {
         expect(globalSpy.called).to.equal(true);
-        done();
-      });
+
+        expect(result).to.be.a('object');
+
+        expect(result).to.include.keys(['status', 'error', 'previousError', 'response', 'args', 'namespace', 'actionType']);
+        expect(result.status).to.equal(0);
+        expect(result.args).to.eql([]);
+        expect(result.error).to.be['instanceof'](_libErrors.ListenerDispatchError);
+        expect(result.previousError).to.be['null'];
+        expect(result.response).to.be.a('object');
+        expect(result.namespace).to.equal('testing.storeSync');
+        expect(result.actionType).to.equal(_lib2['default'].getActionType('testing.storeSync'));
+      }).asCallback(done);
     });
 
     it('before sync event', function (done) {
@@ -414,10 +471,20 @@ exports['default'] = function () {
         }
       });
 
-      context.getActions('testing').sync().then(function () {
+      context.getActions('testing').sync().then(function (result) {
         expect(globalSpy.called).to.equal(true);
-        done();
-      });
+
+        expect(result).to.be.a('object');
+
+        expect(result).to.include.keys(['status', 'error', 'previousError', 'response', 'args', 'namespace', 'actionType']);
+        expect(result.status).to.equal(0);
+        expect(result.args).to.eql([]);
+        expect(result.error).to.be['instanceof'](_libErrors.BeforeDispatchError);
+        expect(result.previousError).to.be['null'];
+        expect(result.response).to.be['null'];
+        expect(result.namespace).to.equal('testing.sync');
+        expect(result.actionType).to.equal(_lib2['default'].getActionType('testing.sync'));
+      }).asCallback(done);
     });
 
     it('before async event', function (done) {
@@ -472,10 +539,20 @@ exports['default'] = function () {
         }
       });
 
-      context.getActions('testing').async().then(function () {
+      context.getActions('testing').async().then(function (result) {
         expect(globalSpy.called).to.equal(true);
-        done();
-      });
+
+        expect(result).to.be.a('object');
+
+        expect(result).to.include.keys(['status', 'error', 'previousError', 'response', 'args', 'namespace', 'actionType']);
+        expect(result.status).to.equal(0);
+        expect(result.args).to.eql([]);
+        expect(result.error).to.be['instanceof'](_libErrors.BeforeDispatchError);
+        expect(result.previousError).to.be['null'];
+        expect(result.response).to.be['null'];
+        expect(result.namespace).to.equal('testing.async');
+        expect(result.actionType).to.equal(_lib2['default'].getActionType('testing.async'));
+      }).asCallback(done);
     });
 
     it('after sync event', function (done) {
@@ -530,10 +607,20 @@ exports['default'] = function () {
         }
       });
 
-      context.getActions('testing').sync().then(function () {
+      context.getActions('testing').sync().then(function (result) {
         expect(globalSpy.called).to.equal(true);
-        done();
-      });
+
+        expect(result).to.be.a('object');
+
+        expect(result).to.include.keys(['status', 'error', 'previousError', 'response', 'args', 'namespace', 'actionType']);
+        expect(result.status).to.equal(0);
+        expect(result.args).to.eql([]);
+        expect(result.error).to.be['instanceof'](_libErrors.AfterDispatchError);
+        expect(result.previousError).to.be['null'];
+        expect(result.response).to.be.a('object');
+        expect(result.namespace).to.equal('testing.sync');
+        expect(result.actionType).to.equal(_lib2['default'].getActionType('testing.sync'));
+      }).asCallback(done);
     });
 
     it('after async event', function (done) {
@@ -588,10 +675,20 @@ exports['default'] = function () {
         }
       });
 
-      context.getActions('testing').async().then(function () {
+      context.getActions('testing').async().then(function (result) {
         expect(globalSpy.called).to.equal(true);
-        done();
-      });
+
+        expect(result).to.be.a('object');
+
+        expect(result).to.include.keys(['status', 'error', 'previousError', 'response', 'args', 'namespace', 'actionType']);
+        expect(result.status).to.equal(0);
+        expect(result.args).to.eql([]);
+        expect(result.error).to.be['instanceof'](_libErrors.AfterDispatchError);
+        expect(result.previousError).to.be['null'];
+        expect(result.response).to.be.a('object');
+        expect(result.namespace).to.equal('testing.async');
+        expect(result.actionType).to.equal(_lib2['default'].getActionType('testing.async'));
+      }).asCallback(done);
     });
 
     it('failed sync event', function (done) {
@@ -646,10 +743,20 @@ exports['default'] = function () {
         }
       });
 
-      context.getActions('testing').error().then(function () {
+      context.getActions('testing').error().then(function (result) {
         expect(globalSpy.called).to.equal(true);
-        done();
-      });
+
+        expect(result).to.be.a('object');
+
+        expect(result).to.include.keys(['status', 'error', 'previousError', 'response', 'args', 'namespace', 'actionType']);
+        expect(result.status).to.equal(0);
+        expect(result.args).to.eql([]);
+        expect(result.error).to.be['instanceof'](_libErrors.FailedDispatchError);
+        expect(result.previousError).to.be['instanceof'](_libErrors.ActionDispatchError);
+        expect(result.response).to.be['null'];
+        expect(result.namespace).to.equal('testing.error');
+        expect(result.actionType).to.equal(_lib2['default'].getActionType('testing.error'));
+      }).asCallback(done);
     });
 
     it('failed async event', function (done) {
@@ -704,10 +811,313 @@ exports['default'] = function () {
         }
       });
 
-      context.getActions('testing').asyncError().then(function () {
+      context.getActions('testing').asyncError().then(function (result) {
         expect(globalSpy.called).to.equal(true);
-        done();
+
+        expect(result).to.be.a('object');
+
+        expect(result).to.include.keys(['status', 'error', 'previousError', 'response', 'args', 'namespace', 'actionType']);
+        expect(result.status).to.equal(0);
+        expect(result.args).to.eql([]);
+        expect(result.error).to.be['instanceof'](_libErrors.FailedDispatchError);
+        expect(result.previousError).to.be['instanceof'](_libErrors.ActionDispatchError);
+        expect(result.response).to.be['null'];
+        expect(result.namespace).to.equal('testing.asyncError');
+        expect(result.actionType).to.equal(_lib2['default'].getActionType('testing.asyncError'));
+      }).asCallback(done);
+    });
+
+    it('previous error (before)', function (done) {
+      var context = _lib2['default'].createContext();
+      var globalSpy = sinon.spy();
+
+      var Comp = (function (_Component11) {
+        _inherits(TestComponent, _Component11);
+
+        function TestComponent() {
+          _classCallCheck(this, TestComponent);
+
+          _get(Object.getPrototypeOf(TestComponent.prototype), 'constructor', this).apply(this, arguments);
+        }
+
+        _createClass(TestComponent, [{
+          key: 'onBefore',
+          value: function onBefore() {
+            throw new Error('testing async failed');
+          }
+        }, {
+          key: 'onFailed',
+          value: function onFailed() {
+            throw new Error('failed, failed');
+          }
+        }, {
+          key: 'render',
+          value: function render() {
+            return _react2['default'].createElement(
+              'h1',
+              null,
+              'Hello'
+            );
+          }
+        }], [{
+          key: 'actions',
+          value: {
+            onBefore: 'testing.asyncError:before',
+            onFailed: 'testing.asyncError:failed'
+          },
+          enumerable: true
+        }]);
+
+        return TestComponent;
+      })(_lib.Component);
+
+      renderedComponent = renderComponent(Comp, {
+        context: context
       });
+
+      var Dispatcher = context.getDispatcher();
+
+      var token = Dispatcher.register(function (event) {
+        return _bluebird2['default']['try'](function () {
+          if (event.actionType === 'ACTION_FAILED') {
+            globalSpy();
+            expect(event.payload.error.message).to.equal('failed, failed');
+            expect(event.payload.type).to.equal('failed');
+          }
+        });
+      });
+
+      context.getActions('testing').asyncError().then(function (result) {
+        expect(globalSpy.called).to.equal(true);
+
+        expect(result).to.be.a('object');
+
+        expect(result).to.include.keys(['status', 'error', 'previousError', 'response', 'args', 'namespace', 'actionType']);
+        expect(result.status).to.equal(0);
+        expect(result.args).to.eql([]);
+        expect(result.error).to.be['instanceof'](_libErrors.FailedDispatchError);
+        expect(result.previousError).to.be['instanceof'](_libErrors.BeforeDispatchError);
+        expect(result.response).to.be['null'];
+        expect(result.namespace).to.equal('testing.asyncError');
+        expect(result.actionType).to.equal(_lib2['default'].getActionType('testing.asyncError'));
+      }).asCallback(done);
+    });
+
+    it('previous error (after)', function (done) {
+      var context = _lib2['default'].createContext();
+      var globalSpy = sinon.spy();
+
+      var Comp = (function (_Component12) {
+        _inherits(TestComponent, _Component12);
+
+        function TestComponent() {
+          _classCallCheck(this, TestComponent);
+
+          _get(Object.getPrototypeOf(TestComponent.prototype), 'constructor', this).apply(this, arguments);
+        }
+
+        _createClass(TestComponent, [{
+          key: 'onAfter',
+          value: function onAfter() {
+            throw new Error('testing async failed');
+          }
+        }, {
+          key: 'onFailed',
+          value: function onFailed() {
+            throw new Error('failed, failed');
+          }
+        }, {
+          key: 'render',
+          value: function render() {
+            return _react2['default'].createElement(
+              'h1',
+              null,
+              'Hello'
+            );
+          }
+        }], [{
+          key: 'actions',
+          value: {
+            onAfter: 'testing.async:after',
+            onFailed: 'testing.async:failed'
+          },
+          enumerable: true
+        }]);
+
+        return TestComponent;
+      })(_lib.Component);
+
+      renderedComponent = renderComponent(Comp, {
+        context: context
+      });
+
+      var Dispatcher = context.getDispatcher();
+
+      var token = Dispatcher.register(function (event) {
+        if (event.actionType === 'ACTION_FAILED') {
+          globalSpy();
+          expect(event.payload.error.message).to.equal('failed, failed');
+          expect(event.payload.type).to.equal('failed');
+        }
+      });
+
+      context.getActions('testing').async().then(function (result) {
+        expect(globalSpy.called).to.equal(true);
+
+        expect(result).to.be.a('object');
+
+        expect(result).to.include.keys(['status', 'error', 'previousError', 'response', 'args', 'namespace', 'actionType']);
+        expect(result.status).to.equal(0);
+        expect(result.args).to.eql([]);
+        expect(result.error).to.be['instanceof'](_libErrors.FailedDispatchError);
+        expect(result.previousError).to.be['instanceof'](_libErrors.AfterDispatchError);
+        expect(result.response).to.be.a('object');
+        expect(result.namespace).to.equal('testing.async');
+        expect(result.actionType).to.equal(_lib2['default'].getActionType('testing.async'));
+      }).asCallback(done);
+    });
+
+    it('previous error (action)', function (done) {
+      var context = _lib2['default'].createContext();
+      var globalSpy = sinon.spy();
+
+      var Comp = (function (_Component13) {
+        _inherits(TestComponent, _Component13);
+
+        function TestComponent() {
+          _classCallCheck(this, TestComponent);
+
+          _get(Object.getPrototypeOf(TestComponent.prototype), 'constructor', this).apply(this, arguments);
+        }
+
+        _createClass(TestComponent, [{
+          key: 'onFailed',
+          value: function onFailed() {
+            throw new Error('failed, failed');
+          }
+        }, {
+          key: 'render',
+          value: function render() {
+            return _react2['default'].createElement(
+              'h1',
+              null,
+              'Hello'
+            );
+          }
+        }], [{
+          key: 'actions',
+          value: {
+            onFailed: 'testing.asyncError:failed'
+          },
+          enumerable: true
+        }]);
+
+        return TestComponent;
+      })(_lib.Component);
+
+      renderedComponent = renderComponent(Comp, {
+        context: context
+      });
+
+      var Dispatcher = context.getDispatcher();
+
+      var token = Dispatcher.register(function (event) {
+        return _bluebird2['default']['try'](function () {
+          if (event.actionType === 'ACTION_FAILED') {
+            globalSpy();
+            expect(event.payload.error.message).to.equal('failed, failed');
+            expect(event.payload.type).to.equal('failed');
+          }
+        });
+      });
+
+      context.getActions('testing').asyncError().then(function (result) {
+        expect(globalSpy.called).to.equal(true);
+
+        expect(result).to.be.a('object');
+
+        expect(result).to.include.keys(['status', 'error', 'previousError', 'response', 'args', 'namespace', 'actionType']);
+        expect(result.status).to.equal(0);
+        expect(result.args).to.eql([]);
+        expect(result.error).to.be['instanceof'](_libErrors.FailedDispatchError);
+        expect(result.previousError).to.be['instanceof'](_libErrors.ActionDispatchError);
+        expect(result.response).to.be['null'];
+        expect(result.namespace).to.equal('testing.asyncError');
+        expect(result.actionType).to.equal(_lib2['default'].getActionType('testing.asyncError'));
+      }).asCallback(done);
+    });
+
+    it('uncaught event is fired', function (done) {
+      var context = _lib2['default'].createContext();
+      var globalSpy = sinon.spy();
+      var testSpy = sinon.spy();
+
+      var Comp = (function (_Component14) {
+        _inherits(TestComponent, _Component14);
+
+        function TestComponent() {
+          _classCallCheck(this, TestComponent);
+
+          _get(Object.getPrototypeOf(TestComponent.prototype), 'constructor', this).apply(this, arguments);
+        }
+
+        _createClass(TestComponent, [{
+          key: 'onFailed',
+          value: function onFailed() {
+            throw new Error('failed, failed');
+          }
+        }, {
+          key: 'render',
+          value: function render() {
+            return _react2['default'].createElement(
+              'h1',
+              null,
+              'Hello'
+            );
+          }
+        }], [{
+          key: 'actions',
+          value: {
+            onFailed: 'testing.asyncError:failed'
+          },
+          enumerable: true
+        }]);
+
+        return TestComponent;
+      })(_lib.Component);
+
+      renderedComponent = renderComponent(Comp, {
+        context: context
+      });
+
+      var Dispatcher = context.getDispatcher();
+
+      var token = Dispatcher.register(function (event) {
+        if (event.actionType === 'ACTION_FAILED') {
+          globalSpy();
+          expect(event.payload.error.message).to.equal('failed, failed');
+          expect(event.payload.type).to.equal('failed');
+          throw new Error('Uncaught Error');
+        } else if (event.actionType === 'ACTION_UNCAUGHT') {
+          globalSpy();
+          expect(event.payload.error.message).to.equal('Uncaught Error');
+        }
+      });
+
+      context.getActions('testing').asyncError().then(function (result) {
+        expect(globalSpy.callCount).to.equal(2);
+
+        expect(result).to.be.a('object');
+
+        expect(result).to.include.keys(['status', 'error', 'previousError', 'response', 'args', 'namespace', 'actionType']);
+        expect(result.status).to.equal(0);
+        expect(result.args).to.eql([]);
+        expect(result.error.message).to.equal('Uncaught Error');
+        expect(result.previousError).to.be['instanceof'](_libErrors.ActionDispatchError);
+        expect(result.response).to.be['null'];
+        expect(result.namespace).to.equal('testing.asyncError');
+        expect(result.actionType).to.equal(_lib2['default'].getActionType('testing.asyncError'));
+      }).asCallback(done);
     });
   });
 };
