@@ -29,9 +29,22 @@ export default () => {
     }
 
     before(() => {
+      class CustomError extends Error {
+        constructor(message) {
+          super(...arguments);
+          this.name = this.constructor.name;
+          this.message = message;
+          this.testing = true;
+        }
+      };
+
       const actionClass = class TestActions extends BaseActions {
         error() {
           throw new Error('action error');
+        }
+
+        customError() {
+          throw new CustomError('custom error');
         }
 
         asyncError() {
@@ -108,6 +121,69 @@ export default () => {
       }
 
       renderedComponent = null;
+    });
+
+    it('wrap Errors', (done) => {
+      const context = fluxapp.createContext();
+      const spy = sinon.spy();
+      const globalSpy = sinon.spy();
+
+      const Comp = class TestComponent extends Component {
+        static actions = {
+          onFailed : 'testing.customError:failed',
+        };
+
+        onFailed() {
+          spy();
+        }
+
+        render() {
+          return (
+            <h1>Hello</h1>
+          );
+        }
+      };
+
+      renderedComponent = renderComponent(Comp, {
+        context : context,
+      });
+
+      context.getActions('testing').customError()
+      .then((result) => {
+        expect(globalSpy.called).to.equal(true);
+        expect(spy.called).to.equal(true);
+
+        expect(result).to.be.a('object');
+
+        expect(result).to.include.keys([
+          'status',
+          'error',
+          'previousError',
+          'response',
+          'args',
+          'namespace',
+          'actionType',
+        ]);
+        expect(result.status).to.equal(0);
+        expect(result.args).to.eql([]);
+        expect(result.error).to.be.instanceof(ActionDispatchError);
+        expect(result.error.testing).to.equal(true);
+        expect(result.error.message).to.equal('custom error');
+        expect(result.previousError).to.be.null;
+        expect(result.response).to.be.null;
+        expect(result.namespace).to.equal('testing.customError');
+        expect(result.actionType).to.equal(fluxapp.getActionType('testing.customError'));
+      }).asCallback(done);
+
+      const Dispatcher = context.getDispatcher();
+
+      const token = Dispatcher.register((event) => {
+        if (event.actionType === 'ACTION_FAILED') {
+          globalSpy();
+          //expect(event.payload.error.message).to.equal('action error');
+          expect(event.payload.type).to.equal('action');
+        }
+      });
     });
 
     it('action error sync', (done) => {

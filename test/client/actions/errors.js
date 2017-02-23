@@ -49,6 +49,23 @@ exports['default'] = function () {
     }
 
     before(function () {
+      var CustomError = (function (_Error) {
+        _inherits(CustomError, _Error);
+
+        function CustomError(message) {
+          _classCallCheck(this, CustomError);
+
+          _get(Object.getPrototypeOf(CustomError.prototype), 'constructor', this).apply(this, arguments);
+          this.name = this.constructor.name;
+          this.message = message;
+          this.testing = true;
+        }
+
+        return CustomError;
+      })(Error);
+
+      ;
+
       var actionClass = (function (_BaseActions) {
         _inherits(TestActions, _BaseActions);
 
@@ -62,6 +79,11 @@ exports['default'] = function () {
           key: 'error',
           value: function error() {
             throw new Error('action error');
+          }
+        }, {
+          key: 'customError',
+          value: function customError() {
+            throw new CustomError('custom error');
           }
         }, {
           key: 'asyncError',
@@ -164,13 +186,85 @@ exports['default'] = function () {
       renderedComponent = null;
     });
 
-    it('action error sync', function (done) {
+    it('wrap Errors', function (done) {
       var context = _lib2['default'].createContext();
       var spy = sinon.spy();
       var globalSpy = sinon.spy();
 
       var Comp = (function (_Component) {
         _inherits(TestComponent, _Component);
+
+        function TestComponent() {
+          _classCallCheck(this, TestComponent);
+
+          _get(Object.getPrototypeOf(TestComponent.prototype), 'constructor', this).apply(this, arguments);
+        }
+
+        _createClass(TestComponent, [{
+          key: 'onFailed',
+          value: function onFailed() {
+            spy();
+          }
+        }, {
+          key: 'render',
+          value: function render() {
+            return _react2['default'].createElement(
+              'h1',
+              null,
+              'Hello'
+            );
+          }
+        }], [{
+          key: 'actions',
+          value: {
+            onFailed: 'testing.customError:failed'
+          },
+          enumerable: true
+        }]);
+
+        return TestComponent;
+      })(_lib.Component);
+
+      renderedComponent = renderComponent(Comp, {
+        context: context
+      });
+
+      context.getActions('testing').customError().then(function (result) {
+        expect(globalSpy.called).to.equal(true);
+        expect(spy.called).to.equal(true);
+
+        expect(result).to.be.a('object');
+
+        expect(result).to.include.keys(['status', 'error', 'previousError', 'response', 'args', 'namespace', 'actionType']);
+        expect(result.status).to.equal(0);
+        expect(result.args).to.eql([]);
+        expect(result.error).to.be['instanceof'](_libErrors.ActionDispatchError);
+        expect(result.error.testing).to.equal(true);
+        expect(result.error.message).to.equal('custom error');
+        expect(result.previousError).to.be['null'];
+        expect(result.response).to.be['null'];
+        expect(result.namespace).to.equal('testing.customError');
+        expect(result.actionType).to.equal(_lib2['default'].getActionType('testing.customError'));
+      }).asCallback(done);
+
+      var Dispatcher = context.getDispatcher();
+
+      var token = Dispatcher.register(function (event) {
+        if (event.actionType === 'ACTION_FAILED') {
+          globalSpy();
+          //expect(event.payload.error.message).to.equal('action error');
+          expect(event.payload.type).to.equal('action');
+        }
+      });
+    });
+
+    it('action error sync', function (done) {
+      var context = _lib2['default'].createContext();
+      var spy = sinon.spy();
+      var globalSpy = sinon.spy();
+
+      var Comp = (function (_Component2) {
+        _inherits(TestComponent, _Component2);
 
         function TestComponent() {
           _classCallCheck(this, TestComponent);
@@ -239,8 +333,8 @@ exports['default'] = function () {
       var spy = sinon.spy();
       var globalSpy = sinon.spy();
 
-      var Comp = (function (_Component2) {
-        _inherits(TestComponent, _Component2);
+      var Comp = (function (_Component3) {
+        _inherits(TestComponent, _Component3);
 
         function TestComponent() {
           _classCallCheck(this, TestComponent);
@@ -308,8 +402,8 @@ exports['default'] = function () {
       var context = _lib2['default'].createContext();
       var globalSpy = sinon.spy();
 
-      var Comp = (function (_Component3) {
-        _inherits(TestComponent, _Component3);
+      var Comp = (function (_Component4) {
+        _inherits(TestComponent, _Component4);
 
         function TestComponent() {
           _classCallCheck(this, TestComponent);
@@ -366,8 +460,8 @@ exports['default'] = function () {
       var context = _lib2['default'].createContext();
       var globalSpy = sinon.spy();
 
-      var Comp = (function (_Component4) {
-        _inherits(TestComponent, _Component4);
+      var Comp = (function (_Component5) {
+        _inherits(TestComponent, _Component5);
 
         function TestComponent() {
           _classCallCheck(this, TestComponent);
@@ -423,8 +517,8 @@ exports['default'] = function () {
       var context = _lib2['default'].createContext();
       var globalSpy = sinon.spy();
 
-      var Comp = (function (_Component5) {
-        _inherits(TestComponent, _Component5);
+      var Comp = (function (_Component6) {
+        _inherits(TestComponent, _Component6);
 
         function TestComponent() {
           _classCallCheck(this, TestComponent);
@@ -491,8 +585,8 @@ exports['default'] = function () {
       var context = _lib2['default'].createContext();
       var globalSpy = sinon.spy();
 
-      var Comp = (function (_Component6) {
-        _inherits(TestComponent, _Component6);
+      var Comp = (function (_Component7) {
+        _inherits(TestComponent, _Component7);
 
         function TestComponent() {
           _classCallCheck(this, TestComponent);
@@ -559,8 +653,8 @@ exports['default'] = function () {
       var context = _lib2['default'].createContext();
       var globalSpy = sinon.spy();
 
-      var Comp = (function (_Component7) {
-        _inherits(TestComponent, _Component7);
+      var Comp = (function (_Component8) {
+        _inherits(TestComponent, _Component8);
 
         function TestComponent() {
           _classCallCheck(this, TestComponent);
@@ -627,8 +721,8 @@ exports['default'] = function () {
       var context = _lib2['default'].createContext();
       var globalSpy = sinon.spy();
 
-      var Comp = (function (_Component8) {
-        _inherits(TestComponent, _Component8);
+      var Comp = (function (_Component9) {
+        _inherits(TestComponent, _Component9);
 
         function TestComponent() {
           _classCallCheck(this, TestComponent);
@@ -695,8 +789,8 @@ exports['default'] = function () {
       var context = _lib2['default'].createContext();
       var globalSpy = sinon.spy();
 
-      var Comp = (function (_Component9) {
-        _inherits(TestComponent, _Component9);
+      var Comp = (function (_Component10) {
+        _inherits(TestComponent, _Component10);
 
         function TestComponent() {
           _classCallCheck(this, TestComponent);
@@ -763,8 +857,8 @@ exports['default'] = function () {
       var context = _lib2['default'].createContext();
       var globalSpy = sinon.spy();
 
-      var Comp = (function (_Component10) {
-        _inherits(TestComponent, _Component10);
+      var Comp = (function (_Component11) {
+        _inherits(TestComponent, _Component11);
 
         function TestComponent() {
           _classCallCheck(this, TestComponent);
@@ -831,8 +925,8 @@ exports['default'] = function () {
       var context = _lib2['default'].createContext();
       var globalSpy = sinon.spy();
 
-      var Comp = (function (_Component11) {
-        _inherits(TestComponent, _Component11);
+      var Comp = (function (_Component12) {
+        _inherits(TestComponent, _Component12);
 
         function TestComponent() {
           _classCallCheck(this, TestComponent);
@@ -907,8 +1001,8 @@ exports['default'] = function () {
       var context = _lib2['default'].createContext();
       var globalSpy = sinon.spy();
 
-      var Comp = (function (_Component12) {
-        _inherits(TestComponent, _Component12);
+      var Comp = (function (_Component13) {
+        _inherits(TestComponent, _Component13);
 
         function TestComponent() {
           _classCallCheck(this, TestComponent);
@@ -981,8 +1075,8 @@ exports['default'] = function () {
       var context = _lib2['default'].createContext();
       var globalSpy = sinon.spy();
 
-      var Comp = (function (_Component13) {
-        _inherits(TestComponent, _Component13);
+      var Comp = (function (_Component14) {
+        _inherits(TestComponent, _Component14);
 
         function TestComponent() {
           _classCallCheck(this, TestComponent);
@@ -1052,8 +1146,8 @@ exports['default'] = function () {
       var globalSpy = sinon.spy();
       var testSpy = sinon.spy();
 
-      var Comp = (function (_Component14) {
-        _inherits(TestComponent, _Component14);
+      var Comp = (function (_Component15) {
+        _inherits(TestComponent, _Component15);
 
         function TestComponent() {
           _classCallCheck(this, TestComponent);

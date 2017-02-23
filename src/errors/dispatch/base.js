@@ -5,8 +5,9 @@ export default class DispatchError extends Error {
     super(_.isString(err) ? err : err.message);
 
     if (! _.isString(err)) {
+      _.assign(this, err);
       this.message = err.message;
-      this.stack = err.stack;
+      this.stack = err.stack || new Error().stack;
     } else {
       this.message = err;
       this.state = new Error().stack;
