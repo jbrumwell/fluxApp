@@ -134,7 +134,7 @@ describe('fluxapp', () => {
       let state = store.getState();
 
       expect(state).to.be.a('object');
-      expect(state).to.be.empty();
+      expect(state).to.be.empty;
 
       context.rehydrate({
         stores : {
@@ -147,7 +147,7 @@ describe('fluxapp', () => {
       state = store.getState();
 
       expect(state).to.be.a('object');
-      expect(state).to.not.be.empty();
+      expect(state).to.not.be.empty;
       expect(state.now).to.equal('string');
     });
 
@@ -164,7 +164,7 @@ describe('fluxapp', () => {
       const state = store.getState();
 
       expect(state).to.be.a('object');
-      expect(state).to.not.be.empty();
+      expect(state).to.not.be.empty;
       expect(state.now).to.equal('string');
     });
 

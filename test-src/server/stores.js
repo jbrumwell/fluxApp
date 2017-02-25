@@ -3,6 +3,12 @@
 import { expect } from 'chai';
 import Promise from 'bluebird';
 import fluxapp, { BaseActions, BaseStore } from '../../lib';
+import {
+  ListenerDispatchError,
+} from '../../lib/errors';
+
+// runs in both the browser and server https://github.com/webpack/webpack/issues/304
+const mysinon = typeof sinon === 'undefined' ? require('sinon') : sinon;
 
 
 describe('store', () => {
@@ -262,7 +268,7 @@ describe('store', () => {
     let state = store.getState();
 
     expect(state).to.be.a('object');
-    expect(state).to.be.empty();
+    expect(state).to.be.empty;
 
     store.rehydrate({
       now : 'string',
@@ -271,7 +277,7 @@ describe('store', () => {
     state = store.getState();
 
     expect(state).to.be.a('object');
-    expect(state).to.not.be.empty();
+    expect(state).to.not.be.empty;
     expect(state.now).to.equal('string');
   });
 
@@ -380,6 +386,48 @@ describe('store', () => {
     actions.login('user', 'password');
   });
 
+  it('should not bind to actions not declared', (done) => {
+    const eventCalled = mysinon.spy();
+    const actionType = fluxapp.getActionType('user.login');
+    const storeClass = class TestStore extends BaseStore {
+      static actions = {
+        onUserLogin : 'user.login',
+      }
+
+      onUserLogin(result, actionType) {
+        expect(actionType).to.equal(actionType);
+        expect(result.success).to.equal(true);
+        done();
+      }
+
+      _processActionEvent(payload) {
+        eventCalled();
+      }
+    };
+    createStore('actions', storeClass);
+
+    const actionClass = class TestActions extends BaseActions {
+      login() {
+        return {
+          success : true,
+        };
+      }
+
+      notObserved() {}
+    };
+
+    fluxapp.registerActions('user', actionClass);
+
+    const actions = context.getActions('user');
+
+    actions.login('user', 'password')
+    .then(() => {
+      return actions.notObserved();
+    }).then(() => {
+      expect(eventCalled.callCount).to.equal(1)
+    }).nodeify(done);
+  });
+
   it('should wait for specified stores to complete', (done) => {
     const storeClass1 = class TestStore extends BaseStore {
       static actions = {
@@ -425,5 +473,55 @@ describe('store', () => {
     const actions = context.getActions('user');
 
     actions.login('user', 'password');
+  });
+
+  it('should throw a Listener error if waitFor is called an no promise is returned', (done) => {
+    const storeClass1 = class TestStore extends BaseStore {
+      static actions = {
+        onUserLogin : 'user.login',
+      }
+
+      onUserLogin(result, actionType) {
+        this.setState({
+          ran : true,
+        });
+      }
+    };
+
+    const storeClass2 = class TestStore extends BaseStore {
+      static actions = {
+        onUserLogin : 'user.login',
+      }
+
+      onUserLogin(result, actionType) {
+        this.waitFor('testStore').then(() => {
+          const state = this.getStore('testStore').getState();
+          expect(state.ran).to.equal(true);
+          expect(actionType).to.equal(fluxapp.getActionType('user.login'));
+          expect(result.success).to.equal(true);
+        });
+      }
+    };
+
+    createStore('testStore', storeClass1);
+    createStore('actions', storeClass2);
+
+    const actionClass = class TestActions extends BaseActions {
+      login() {
+        return {
+          success : true,
+        };
+      }
+    };
+
+    fluxapp.registerActions('user', actionClass);
+
+    const actions = context.getActions('user');
+
+    actions.login('user', 'password')
+    .then((result) => {
+      expect(result.status).to.equal(0);
+      expect(result.error).to.be.instanceof(ListenerDispatchError);
+    }).nodeify(done);
   });
 });

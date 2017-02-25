@@ -174,7 +174,7 @@ describe('fluxapp', function () {
       var state = store.getState();
 
       (0, _chai.expect)(state).to.be.a('object');
-      (0, _chai.expect)(state).to.be.empty();
+      (0, _chai.expect)(state).to.be.empty;
 
       context.rehydrate({
         stores: {
@@ -187,7 +187,7 @@ describe('fluxapp', function () {
       state = store.getState();
 
       (0, _chai.expect)(state).to.be.a('object');
-      (0, _chai.expect)(state).to.not.be.empty();
+      (0, _chai.expect)(state).to.not.be.empty;
       (0, _chai.expect)(state.now).to.equal('string');
     });
 
@@ -204,7 +204,7 @@ describe('fluxapp', function () {
       var state = store.getState();
 
       (0, _chai.expect)(state).to.be.a('object');
-      (0, _chai.expect)(state).to.not.be.empty();
+      (0, _chai.expect)(state).to.not.be.empty;
       (0, _chai.expect)(state.now).to.equal('string');
     });
 

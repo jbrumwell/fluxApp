@@ -56,7 +56,12 @@ export default class fluxappComponent extends Component {
         this._bindActions(actions[ method ], this[ method ]);
       });
 
-      this._dispatchToken = fluxapp.getDispatcher().register(this.onDispatch.bind(this));
+      if (_.size(this._actionMap)) {
+        this._dispatchToken = fluxapp.getDispatcher().register(
+          this.onDispatch.bind(this),
+          _.keys(this._actionMap)
+        );
+      }
     }
   }
 

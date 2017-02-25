@@ -194,7 +194,7 @@ describe('Dispatcher', function() {
     var callbackD = mysinon.spy();
 
     dispatcher.register(function() {
-      return dispatcher.waitFor([ tokenB, tokenC, tokenD ]).then(function() {
+      return dispatcher.waitFor([ tokenC, tokenB, tokenD ]).then(function() {
         expect(callbackB.callCount).to.equal(1);
         expect(callbackC.callCount).to.equal(1);
         expect(callbackD.callCount).to.equal(1);
@@ -233,6 +233,67 @@ describe('Dispatcher', function() {
       expect(callbackB.callCount).to.equal(1);
       expect(callbackC.callCount).to.equal(1);
       expect(callbackD.callCount).to.equal(1);
+      done();
+    });
+  });
+
+  it('should wait for all listeners before launching another event', function(done) {
+    var callbackC = mysinon.spy();
+    var callbackD = mysinon.spy();
+    var callbackE = mysinon.spy();
+    var secondEvent = mysinon.spy();
+
+    dispatcher.register(function(payload) {
+      if (payload.actionType === 'one' && callbackA.callCount === 0) {
+        dispatcher.dispatch({
+          actionType : 'two',
+        });
+      }
+
+      return dispatcher.waitFor([ tokenC ]).then(function() {
+        if (payload.actionType === 'one' && callbackA.callCount === 0) {
+          expect(callbackB.callCount).to.equal(0);
+          expect(callbackC.callCount).to.equal(1);
+          expect(callbackD.callCount).to.equal(0);
+        }
+        callbackA();
+      });
+    });
+
+    var tokenB = dispatcher.register(function(payload) {
+      if (payload.actionType === 'one' && callbackB.callCount === 0) {
+        callbackB();
+      }
+    });
+
+    var tokenC = dispatcher.register(function(payload) {
+      if (payload.actionType === 'one' && callbackC.callCount === 0) {
+        callbackC();
+      }
+    });
+
+    var tokenD = dispatcher.register(function(payload) {
+      if (payload.actionType === 'one' && callbackD.callCount === 0) {
+        callbackD();
+      }
+    });
+
+    var tokenE = dispatcher.register(function(payload) {
+      if (payload.actionType === 'one' && callbackE.callCount === 0) {
+        callbackE();
+      }
+    });
+
+    var payload = {
+      actionType : 'one',
+    };
+
+    dispatcher.dispatch(payload).then(function() {
+      expect(callbackA.callCount).to.equal(1);
+      expect(callbackB.callCount).to.equal(1);
+      expect(callbackC.callCount).to.equal(1);
+      expect(callbackD.callCount).to.equal(1);
+      expect(callbackE.callCount).to.equal(1);
       done();
     });
   });
@@ -314,7 +375,7 @@ describe('Dispatcher', function() {
     });
 
     dispatcher.dispatch({}).catch(function(err) {
-      expect(err).to.be.a('object');
+      expect(err).to.be.instanceof(Error);
       expect(err.message).to.equal('Error');
       done();
     });
@@ -337,7 +398,7 @@ describe('Dispatcher', function() {
     });
 
     dispatcher.dispatch({}).catch(function(err) {
-      expect(err).to.be.a('object');
+      expect(err).to.be.instanceof(Error);
       expect(err.message).to.equal('Error');
       done();
     });

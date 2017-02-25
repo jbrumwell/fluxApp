@@ -1,7 +1,3 @@
-'use strict';
-// Karma configuration
-// Generated on Wed Oct 01 2014 15:38:20 GMT-0400 (EDT)
-
 module.exports = function(config) {
   var webpack = require('webpack');
 
@@ -18,17 +14,16 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files : [
-      'test/client/index.js'
+      'test/client/index.js',
     ],
 
     // list of files to exclude
-    exclude : [
-    ],
+    exclude : [],
 
     // preprocess matching files before serving them to the browser
     // available preprocessors : https://npmjs.org/browse/keyword/karma-preprocessor
     preprocessors : {
-      'test/client/index.js' : [ 'webpack', 'sourcemap' ]
+      'test/client/index.js' : [ 'webpack', 'sourcemap' ],
     },
 
     // test results reporter to use
@@ -64,36 +59,36 @@ module.exports = function(config) {
       'karma-mocha',
       'karma-sinon-chai',
       'karma-chrome-launcher',
-      'karma-spec-reporter'
+      'karma-spec-reporter',
     ],
 
     webpack : {
       target : 'web',
       devtool : 'inline-source-map',
       resolve : {
-        extensions : [ '', '.js', '.json', '.jsx' ]
+        extensions : [ '.js', '.json', '.jsx' ],
       },
       module : {
         loaders : [
           {
             test : /\.json$/,
-            loader : 'json'
+            loader : 'json-loader',
           },
           {
             test : /\.js(x)?$/,
-            loader : 'jsx?name=js/[name].[ext]'
+            loader : 'jsx-loader?name=js/[name].[ext]',
           },
           {
             test : /sinon.js$/,
-            loader : 'null'
-          }
-        ]
+            loader : 'null-loader',
+          },
+        ],
       },
       plugins : [
         new webpack.DefinePlugin({
-          IS_KARMA : true
-        })
+          IS_KARMA : true,
+        }),
       ],
-    }
+    },
   });
 };

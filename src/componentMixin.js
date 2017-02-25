@@ -1,4 +1,5 @@
 import React from 'react';
+import _ from 'lodash';
 
 export default {
   contextTypes : {
@@ -24,8 +25,13 @@ export default {
 
           this.bindActions(flux.actions[ method ], this[ method ]);
         });
+      }
 
-        this.dispatchToken = fluxApp.getDispatcher().register(this.onDispatch);
+      if (_.size(this._actionMapper)) {
+        this.dispatchToken = fluxApp.getDispatcher().register(
+          this.onDispatch,
+          _.keys(this._actionMapper)
+        );
       }
 
       if (flux.stores) {

@@ -2,6 +2,7 @@
 'use strict';
 
 window.setImmediate = process.nextTick;
+window.clearImmediate = process.nextTick;
 
 require('../server/fluxapp');
 require('../server/stores');

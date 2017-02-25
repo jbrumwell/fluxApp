@@ -7,6 +7,7 @@ const CHANGE_EVENT = 'changed';
 
 export default class BaseStore extends EventEmitter {
   changed = false;
+  _waitForCalled = false;
 
   constructor(context) {
     super();
@@ -90,8 +91,14 @@ export default class BaseStore extends EventEmitter {
    */
   _initDispatcher() {
     const Dispatcher = this.context.getDispatcher();
+    const events = _.keys(this._actionTypes);
 
-    this._dispatchToken = Dispatcher.register(this._processActionEvent.bind(this));
+    if (events.length) {
+      this._dispatchToken = Dispatcher.register(
+        this._processActionEvent.bind(this),
+        events
+      );
+    }
   }
 
   /**
@@ -115,6 +122,8 @@ export default class BaseStore extends EventEmitter {
     if (typeof stores === 'string') {
       stores = stores.split(',');
     }
+
+    this._waitForCalled = true;
 
     tokens = stores.map((name) => {
       const store = context.getStore(name.trim());
@@ -167,6 +176,12 @@ export default class BaseStore extends EventEmitter {
         result = this[ method ](payload.payload);
       }
     }
+
+    if (this._waitForCalled && ! _.isFunction(_.get(result, 'then'))) {
+      throw new Error('Fluxapp Store: Action handler called `waitFor` but did not return a promise');
+    }
+
+    this._waitForCalled = false;
 
     return result;
   }

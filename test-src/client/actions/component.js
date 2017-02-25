@@ -271,6 +271,55 @@ export default () => {
       context.getActions('test').method();
     });
 
+    it('should not get notified when an unregistered event occurs', function(done) {
+      const context = fluxapp.createContext();
+      const failedCalled = sinon.spy();
+      const eventCalled = sinon.spy();
+
+      const actionClass = class TestActions extends BaseActions {
+        method() {
+          return new Promise((resolve, reject) => {
+            setImmediate(() => {
+              reject(new Error('something'));
+            });
+          });
+        }
+      };
+
+      fluxapp.registerActions('test', actionClass);
+
+      const Comp = class TestComponent extends Component {
+        static actions = {
+          onTestMethodFailed : 'test.method:failed',
+        }
+
+        onTestMethodFailed() {
+          failedCalled();
+        }
+
+        onDispatch() {
+          eventCalled();
+          return super.onDispatch(...arguments);
+        }
+
+        render() {
+          return (
+            <h1>Hello</h1>
+          );
+        }
+      };
+
+      renderedComponent = renderComponent(Comp, {
+        context : context,
+      });
+
+      context.getActions('test').method()
+      .then(() => {
+        expect(eventCalled.callCount).to.equal(1);
+        expect(failedCalled.callCount).to.equal(1);
+      }).nodeify(done);
+    });
+
     it('should have access to custom context methods', function(done) {
       const context = fluxapp.createContext({
         custom() {

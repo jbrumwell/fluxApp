@@ -178,7 +178,7 @@ describe('actions', () => {
       if (result.actionType === eventName) {
         dispatcher.unregister(dispatchId);
         expect(result.actionType).to.equal(eventName);
-        expect(result.payload).to.be.undefined();
+        expect(result.payload).to.be.undefined;
         done();
       }
     }

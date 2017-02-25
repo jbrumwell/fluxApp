@@ -1,6 +1,7 @@
 import Promise from 'bluebird';
 import _ from 'lodash';
 import promiseMethod from './decorators/promise-method';
+import namespaceTransform from './util/namespaceTransform';
 
 let _lastID = 1;
 const _prefix = 'ID_';
@@ -15,6 +16,7 @@ export default class Dispatcher {
 
   _openPromises = [];
   _callbacks = [];
+  _events = {};
   _queued = [];
 
   /**
@@ -25,11 +27,25 @@ export default class Dispatcher {
    * @param  {Function} callback
    * @return {[String]}
    */
-  register(callback) {
+  register(callback, events = '*') {
     const id = _prefix + _lastID;
+
+    events = _.isString(events) ? [ events ] : events;
+
+    if (! _.size(events)) {
+      throw new Error('Fluxapp: Dispatcher requires a list of events or "*" to receive all events');
+    }
+
     this._callbacks[id] = Promise.method(callback);
 
+    _.each(events, (event) => {
+      event = event === '*' ? event : namespaceTransform(event);
+      this._events[event] = this._events[event] || [];
+      this._events[event].push(id);
+    });
+
     _lastID += 1;
+
     return id;
   }
 
@@ -40,6 +56,10 @@ export default class Dispatcher {
    */
   unregister(id) {
     delete this._callbacks[id];
+
+    this._events = _.mapValues(this._events, (events) => {
+      return _.without(events, id);
+    });
   }
 
   /**
@@ -82,24 +102,24 @@ export default class Dispatcher {
    */
   _dispatchBatch(batch) {
     return Promise.using(this._batchPromise(batch), (idxs) => {
-      return Promise.each(idxs, (idx) => {
-        this._dispatchingId = idx;
-        this._openPromises.push(idx);
+      return Promise.each(idxs, this._dispatchJob.bind(this));
+    });
+  }
 
-        return Promise.using(this._jobPromise(idx), () => {
-          const cb = this._pending[idx];
+  _dispatchJob(idx) {
+    this._dispatchingId = idx;
+    this._openPromises.push(idx);
 
-          return cb ? cb() : null;
-        });
-      });
+    return Promise.using(this._jobPromise(idx), () => {
+      const cb = this._pending[idx];
+
+      return cb ? cb() : null;
     });
   }
 
   _batchPromise(promises) {
     return Promise.resolve(_.keys(promises))
     .disposer(() => {
-      this._dispatchingId = null;
-
       return this._stopDispatching();
     });
   }
@@ -124,20 +144,27 @@ export default class Dispatcher {
       return this._queue(payload);
     }
 
+    const event = payload.actionType;
+    const events = _.chain([])
+                    .concat(this._events['*'], this._events[event])
+                    .uniq()
+                    .value();
+
     this._isDispatching = true;
+    this._isDispatchingEvent = event;
 
     this._openPromises = [];
 
     this._pending = {};
 
-    Object.keys(this._callbacks).forEach((idx) => {
+    _.each(events).forEach((idx) => {
       this._pending[idx] = () => {
         return _.isFunction(this._callbacks[idx]) ? this._callbacks[idx](payload) :
                                                     Promise.resolve();
       };
     });
 
-    return this._dispatchBatch(this._callbacks);
+    return events.length ? this._dispatchBatch(this._pending) : this._stopDispatching();
   }
 
   /*
@@ -145,6 +172,8 @@ export default class Dispatcher {
    */
   _stopDispatching() {
     this._isDispatching = false;
+    this._isDispatchingEvent = null;
+
     this._drain();
   }
 
@@ -159,7 +188,7 @@ export default class Dispatcher {
       throw new Error('Dispatcher.waitFor(...): Must be invoked while dispatching.');
     }
 
-    const pending = {};
+    const pending = [];
 
     ids.forEach((id) => {
       const cb = this._pending[id];
@@ -174,12 +203,13 @@ export default class Dispatcher {
         throw new Error('Dispatcher.waitFor(...): Circular dependency detected');
       }
 
-      if (this._pending[id]) {
-        pending[id] = cb;
+      if (cb) {
+        pending.push(id);
       }
     });
 
-    return _.keys(pending).length ? this._dispatchBatch(pending) : Promise.resolve();
+    return ! _.size(pending) ? Promise.resolve() :
+                               Promise.mapSeries(pending, this._dispatchJob.bind(this));
   }
 
   /*
@@ -196,5 +226,7 @@ export default class Dispatcher {
 
       this._openPromises = this._openPromises.filter((id) => idx !== id);
     }
+
+    this._dispatchingId = null;
   }
 }
