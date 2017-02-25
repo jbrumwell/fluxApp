@@ -139,6 +139,7 @@ export default class Dispatcher {
    * @param  {Object} payload
    * @return {Promise}
    */
+  @promiseMethod
   dispatch(payload) {
     if (this._isDispatching) {
       return this._queue(payload);
@@ -146,7 +147,7 @@ export default class Dispatcher {
 
     const event = payload.actionType;
     const events = _.chain([])
-                    .concat(this._events['*'], this._events[event])
+                    .concat(this._events['*'] || [], this._events[event] || [])
                     .uniq()
                     .value();
 
