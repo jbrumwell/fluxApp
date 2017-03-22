@@ -167,8 +167,8 @@ export default () => {
         expect(result.status).to.equal(0);
         expect(result.args).to.eql([]);
         expect(result.error).to.be.instanceof(ActionDispatchError);
-        expect(result.error.testing).to.equal(true);
-        expect(result.error.message).to.equal('custom error');
+        expect(result.error.originalError.testing).to.equal(true);
+        expect(result.error.originalError.message).to.equal('custom error');
         expect(result.previousError).to.be.null;
         expect(result.response).to.be.null;
         expect(result.namespace).to.equal('testing.customError');
