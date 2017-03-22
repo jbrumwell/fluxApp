@@ -76,7 +76,7 @@ export default class BaseActions {
       actionType : namespaceTransform(namespace, 'failed'),
       payload : {
         args,
-        error,
+        error : _.has(error, 'originalError') ? error.originalError : error,
         type,
       },
     }).catch((err) => {
