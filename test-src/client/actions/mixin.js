@@ -1,5 +1,6 @@
 /* global describe, it, afterEach, document, sinon, expect */
 import React from 'react';
+import DOM from '../lib/dom';
 import Promise from 'bluebird';
 import fluxapp, { BaseActions } from '../../../lib';
 
@@ -16,15 +17,15 @@ export default () => {
 
       document.body.appendChild(elem);
 
-      return React.render((
+      return DOM.render((
         <ContextWrapper handler={Component} context={context} />
       ), elem);
     }
 
     afterEach(() => {
       if (renderedComponent) {
-        const elem = renderedComponent.getDOMNode().parentNode;
-        React.unmountComponentAtNode(elem);
+        const elem = DOM.findDOMNode(renderedComponent).parentNode;
+        DOM.unmountComponentAtNode(elem);
         document.body.removeChild(elem);
       }
 

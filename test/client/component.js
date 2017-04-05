@@ -15,6 +15,10 @@ var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
 
+var _libDom = require('./lib/dom');
+
+var _libDom2 = _interopRequireDefault(_libDom);
+
 var _lib = require('../../lib');
 
 var _lib2 = _interopRequireDefault(_lib);
@@ -74,7 +78,7 @@ describe('Component', function () {
 
     document.body.appendChild(elem);
 
-    return _react2['default'].render(_react2['default'].createElement(ContextWrapper, { handler: Comp, context: context, spies: spies }), elem);
+    return _libDom2['default'].render(_react2['default'].createElement(ContextWrapper, { handler: Comp, context: context, spies: spies }), elem);
   }
 
   describe('lifecycle', function () {
@@ -117,8 +121,8 @@ describe('Component', function () {
         un: un
       });
 
-      var elem = renderedComponent.getDOMNode().parentNode;
-      _react2['default'].unmountComponentAtNode(elem);
+      var elem = _libDom2['default'].findDOMNode(renderedComponent).parentNode;
+      _libDom2['default'].unmountComponentAtNode(elem);
       document.body.removeChild(elem);
 
       (0, _chai.expect)(un.callCount).to.equal(1);
@@ -177,8 +181,8 @@ describe('Component', function () {
         un: un
       });
 
-      var elem = renderedComponent.getDOMNode().parentNode;
-      _react2['default'].unmountComponentAtNode(elem);
+      var elem = _libDom2['default'].findDOMNode(renderedComponent).parentNode;
+      _libDom2['default'].unmountComponentAtNode(elem);
       document.body.removeChild(elem);
 
       (0, _chai.expect)(un.callCount).to.equal(2);

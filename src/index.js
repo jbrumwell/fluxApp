@@ -116,7 +116,7 @@ FluxApp.prototype.registerPlugins = function registerPlugins(plugins) {
   var self = this;
 
   _.each(plugins, function _registerPlugin(plugin, name) {
-     self.registerPlugin(name, plugin);
+    self.registerPlugin(name, plugin);
   });
 
   return this;
@@ -355,6 +355,10 @@ FluxApp.prototype.removeActions = function removeActions(namespace) {
   this.emit('actions.remove', namespace);
 
   return this;
+};
+
+FluxApp.prototype.hasActions = function hasActions(namespace) {
+  return !! this._actions[ namespace ];
 };
 
 /**

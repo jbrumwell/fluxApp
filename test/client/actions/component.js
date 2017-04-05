@@ -19,6 +19,10 @@ var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
 
+var _libDom = require('../lib/dom');
+
+var _libDom2 = _interopRequireDefault(_libDom);
+
 var _bluebird = require('bluebird');
 
 var _bluebird2 = _interopRequireDefault(_bluebird);
@@ -39,13 +43,13 @@ exports['default'] = function () {
 
       document.body.appendChild(elem);
 
-      return _react2['default'].render(_react2['default'].createElement(ContextWrapper, { handler: Comp, context: context }), elem);
+      return _libDom2['default'].render(_react2['default'].createElement(ContextWrapper, { handler: Comp, context: context }), elem);
     }
 
     afterEach(function () {
       if (renderedComponent) {
-        var elem = renderedComponent.getDOMNode().parentNode;
-        _react2['default'].unmountComponentAtNode(elem);
+        var elem = _libDom2['default'].findDOMNode(renderedComponent).parentNode;
+        _libDom2['default'].unmountComponentAtNode(elem);
         document.body.removeChild(elem);
       }
 
@@ -505,6 +509,86 @@ exports['default'] = function () {
       context.getActions('test').method();
     });
 
+    it('should not get notified when an unregistered event occurs', function (done) {
+      var context = _lib2['default'].createContext();
+      var failedCalled = sinon.spy();
+      var eventCalled = sinon.spy();
+
+      var actionClass = (function (_BaseActions7) {
+        _inherits(TestActions, _BaseActions7);
+
+        function TestActions() {
+          _classCallCheck(this, TestActions);
+
+          _get(Object.getPrototypeOf(TestActions.prototype), 'constructor', this).apply(this, arguments);
+        }
+
+        _createClass(TestActions, [{
+          key: 'method',
+          value: function method() {
+            return new _bluebird2['default'](function (resolve, reject) {
+              setImmediate(function () {
+                reject(new Error('something'));
+              });
+            });
+          }
+        }]);
+
+        return TestActions;
+      })(_lib.BaseActions);
+
+      _lib2['default'].registerActions('test', actionClass);
+
+      var Comp = (function (_Component9) {
+        _inherits(TestComponent, _Component9);
+
+        function TestComponent() {
+          _classCallCheck(this, TestComponent);
+
+          _get(Object.getPrototypeOf(TestComponent.prototype), 'constructor', this).apply(this, arguments);
+        }
+
+        _createClass(TestComponent, [{
+          key: 'onTestMethodFailed',
+          value: function onTestMethodFailed() {
+            failedCalled();
+          }
+        }, {
+          key: 'onDispatch',
+          value: function onDispatch() {
+            eventCalled();
+            return _get(Object.getPrototypeOf(TestComponent.prototype), 'onDispatch', this).apply(this, arguments);
+          }
+        }, {
+          key: 'render',
+          value: function render() {
+            return _react2['default'].createElement(
+              'h1',
+              null,
+              'Hello'
+            );
+          }
+        }], [{
+          key: 'actions',
+          value: {
+            onTestMethodFailed: 'test.method:failed'
+          },
+          enumerable: true
+        }]);
+
+        return TestComponent;
+      })(_lib.Component);
+
+      renderedComponent = renderComponent(Comp, {
+        context: context
+      });
+
+      context.getActions('test').method().then(function () {
+        expect(eventCalled.callCount).to.equal(1);
+        expect(failedCalled.callCount).to.equal(1);
+      }).nodeify(done);
+    });
+
     it('should have access to custom context methods', function (done) {
       var context = _lib2['default'].createContext({
         custom: function custom() {
@@ -512,8 +596,8 @@ exports['default'] = function () {
         }
       });
 
-      var actionClass = (function (_BaseActions7) {
-        _inherits(TestActions, _BaseActions7);
+      var actionClass = (function (_BaseActions8) {
+        _inherits(TestActions, _BaseActions8);
 
         function TestActions() {
           _classCallCheck(this, TestActions);

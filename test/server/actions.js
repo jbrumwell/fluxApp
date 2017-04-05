@@ -192,7 +192,7 @@ describe('actions', function () {
     function listener(result) {
       dispatcher.unregister(dispatchId);
       expect(result.actionType).to.equal(_lib2['default'].getActionType('test.method:before'));
-      expect(result.payload).to.be.undefined();
+      expect(result.payload).to.be['instanceof'](Array);
       done();
     }
 
@@ -276,7 +276,7 @@ describe('actions', function () {
       if (result.actionType === eventName) {
         dispatcher.unregister(dispatchId);
         expect(result.actionType).to.equal(eventName);
-        expect(result.payload).to.be.undefined();
+        expect(result.payload).to.be.undefined;
         done();
       }
     }
@@ -382,11 +382,11 @@ describe('actions', function () {
     context.getActions('test').parameters('a', 'b').then(function (result) {
       var actionType = _lib2['default'].getActionType('test.parameters');
 
-      expect(result).to.be.a('array');
-      expect(result[0]).to.equal(actionType);
-      expect(result[1]).to.be.a('array');
-      expect(result[1][0]).to.equal('a');
-      expect(result[1][1]).to.equal('b');
+      expect(result).to.be.a('object');
+      expect(result.actionType).to.equal(actionType);
+      expect(result.args).to.be.a('array');
+      expect(result.args[0]).to.equal('a');
+      expect(result.args[1]).to.equal('b');
       done();
     });
   });
@@ -420,11 +420,55 @@ describe('actions', function () {
     context.getActions('test').method('a', 'b').then(function (result) {
       var actionType = _lib2['default'].getActionType('test.method');
 
-      expect(result).to.be.a('array');
-      expect(result[0]).to.equal(actionType);
-      expect(result[1]).to.be.a('array');
-      expect(result[1][0]).to.equal('a');
-      expect(result[1][1]).to.equal('b');
+      expect(result).to.be.a('object');
+      expect(result.actionType).to.equal(actionType);
+      expect(result.args).to.be.a('array');
+      expect(result.args[0]).to.equal('a');
+      expect(result.args[1]).to.equal('b');
+      done();
+    });
+  });
+
+  it('should return result object (success)', function (done) {
+    var actionClass = (function (_BaseActions11) {
+      _inherits(TestActions, _BaseActions11);
+
+      function TestActions() {
+        _classCallCheck(this, TestActions);
+
+        _get(Object.getPrototypeOf(TestActions.prototype), 'constructor', this).apply(this, arguments);
+      }
+
+      _createClass(TestActions, [{
+        key: 'method',
+        value: function method(a, b) {
+          expect(a).to.equal('a');
+          expect(b).to.equal('b');
+          return new _bluebird2['default'](function (resolve) {
+            setImmediate(resolve.bind(resolve, ['c', 'd']));
+          });
+        }
+      }]);
+
+      return TestActions;
+    })(_lib.BaseActions);
+
+    createActions('test', actionClass);
+
+    context.getActions('test').method('a', 'b').then(function (result) {
+      var actionType = _lib2['default'].getActionType('test.method');
+
+      expect(result).to.be.a('object');
+
+      expect(result).to.include.keys(['status', 'error', 'previousError', 'response', 'args', 'namespace', 'actionType']);
+      expect(result.status).to.equal(1);
+      expect(result.args).to.eql(['a', 'b']);
+      expect(result.error).to.be['null'];
+      expect(result.previousError).to.be['null'];
+      expect(result.response).to.eql(['c', 'd']);
+      expect(result.namespace).to.equal('test.method');
+      expect(result.actionType).to.equal(actionType);
+
       done();
     });
   });

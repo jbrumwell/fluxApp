@@ -56,7 +56,12 @@ export default class fluxappComponent extends Component {
         this._bindActions(actions[ method ], this[ method ]);
       });
 
-      this._dispatchToken = fluxapp.getDispatcher().register(this.onDispatch.bind(this));
+      if (_.size(this._actionMap)) {
+        this._dispatchToken = fluxapp.getDispatcher().register(
+          this.onDispatch.bind(this),
+          _.keys(this._actionMap)
+        );
+      }
     }
   }
 
@@ -209,6 +214,22 @@ export default class fluxappComponent extends Component {
   }
 
   /**
+   * Proxy to fluxapp.hasActions
+   * @param {String} namespace
+   */
+  hasActions(namespace) {
+    return this.context.flux.hasActions(namespace);
+  }
+
+  /**
+   * Proxy to fluxapp.hasAction
+   * @param {String} namespace
+   */
+  hasAction(namespace, action) {
+    return this.context.flux.hasAction(namespace, action);
+  }
+
+  /**
    * Retrieves an individual action method
    *
    * @param {String} namespace
@@ -240,9 +261,12 @@ export default class fluxappComponent extends Component {
     */
    onDispatch(payload) {
      const map = this._actionMap;
+     let result;
 
      if (map[ payload.actionType ]) {
-       map[ payload.actionType ](payload.payload, payload.actionType);
+       result = map[ payload.actionType ](payload.payload, payload.actionType);
      }
+
+     return result;
    }
 }

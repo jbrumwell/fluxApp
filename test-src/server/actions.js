@@ -120,7 +120,7 @@ describe('actions', () => {
     function listener(result) {
       dispatcher.unregister(dispatchId);
       expect(result.actionType).to.equal(fluxapp.getActionType('test.method:before'));
-      expect(result.payload).to.be.undefined();
+      expect(result.payload).to.be.instanceof(Array);
       done();
     }
 
@@ -178,7 +178,7 @@ describe('actions', () => {
       if (result.actionType === eventName) {
         dispatcher.unregister(dispatchId);
         expect(result.actionType).to.equal(eventName);
-        expect(result.payload).to.be.undefined();
+        expect(result.payload).to.be.undefined;
         done();
       }
     }
@@ -245,11 +245,11 @@ describe('actions', () => {
     context.getActions('test').parameters('a', 'b').then((result) => {
       const actionType = fluxapp.getActionType('test.parameters');
 
-      expect(result).to.be.a('array');
-      expect(result[0]).to.equal(actionType);
-      expect(result[1]).to.be.a('array');
-      expect(result[1][0]).to.equal('a');
-      expect(result[1][1]).to.equal('b');
+      expect(result).to.be.a('object');
+      expect(result.actionType).to.equal(actionType);
+      expect(result.args).to.be.a('array');
+      expect(result.args[0]).to.equal('a');
+      expect(result.args[1]).to.equal('b');
       done();
     });
   });
@@ -270,11 +270,50 @@ describe('actions', () => {
     context.getActions('test').method('a', 'b').then((result) => {
       const actionType = fluxapp.getActionType('test.method');
 
-      expect(result).to.be.a('array');
-      expect(result[0]).to.equal(actionType);
-      expect(result[1]).to.be.a('array');
-      expect(result[1][0]).to.equal('a');
-      expect(result[1][1]).to.equal('b');
+      expect(result).to.be.a('object');
+      expect(result.actionType).to.equal(actionType);
+      expect(result.args).to.be.a('array');
+      expect(result.args[0]).to.equal('a');
+      expect(result.args[1]).to.equal('b');
+      done();
+    });
+  });
+
+  it('should return result object (success)', (done) => {
+    const actionClass = class TestActions extends BaseActions {
+      method(a, b) {
+        expect(a).to.equal('a');
+        expect(b).to.equal('b');
+        return new Promise(function(resolve) {
+          setImmediate(resolve.bind(resolve, [ 'c', 'd' ]));
+        });
+      }
+    };
+
+    createActions('test', actionClass);
+
+    context.getActions('test').method('a', 'b').then((result) => {
+      const actionType = fluxapp.getActionType('test.method');
+
+      expect(result).to.be.a('object');
+
+      expect(result).to.include.keys([
+        'status',
+        'error',
+        'previousError',
+        'response',
+        'args',
+        'namespace',
+        'actionType',
+      ]);
+      expect(result.status).to.equal(1);
+      expect(result.args).to.eql(['a', 'b']);
+      expect(result.error).to.be.null;
+      expect(result.previousError).to.be.null;
+      expect(result.response).to.eql(['c', 'd']);
+      expect(result.namespace).to.equal('test.method');
+      expect(result.actionType).to.equal(actionType);
+
       done();
     });
   });

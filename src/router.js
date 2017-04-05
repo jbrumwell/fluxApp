@@ -1,5 +1,3 @@
-'use strict';
-
 var Route = require('route-parser');
 var Promise = require('bluebird');
 var _ = require('lodash');
@@ -86,7 +84,7 @@ Router.prototype.getRouteByUrl = function getRouteByUrl(path, meta, strict) {
     params = self._parsers[route.id].match(path);
 
     if (params && self._methodMatch(meta.method, route.method)) {
-      if(! route.notFound) {
+      if (! route.notFound) {
         found = route;
       } else if (! strict && (! notFound || route.path > notFound.path)) {
         notFound =  route;
@@ -175,7 +173,7 @@ Router.prototype.addRoute = function addRoute(route) {
   }
 
   if (route.notFound) {
-    route.path = ! route.path ? '/*path' : path.join(route.path,'/*path');
+    route.path = ! route.path ? '/*path' : path.join(route.path, '/*path');
   }
 
   if (! route.path) {
