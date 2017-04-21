@@ -21,7 +21,7 @@ export default class BaseStore extends EventEmitter {
     this.context = context;
     this._initActions();
     this._initDispatcher();
-    this.state = immutable(this.getInitialState());
+    this.reset();
     this.init();
   }
 
@@ -233,6 +233,10 @@ export default class BaseStore extends EventEmitter {
   * Fallback for store destruction
   */
   destroy() {}
+
+  reset() {
+    this.state = immutable(this.getInitialState());
+  }
 
   /**
    * Tests the equality of current and next state
