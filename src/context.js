@@ -259,6 +259,17 @@ export default class FluxAppContext {
   }
 
   /**
+   * Get all registered stores
+   *
+   * @return {Object}
+   */
+  getStores() {
+    this.aliveCheck('getStores()');
+
+    return this._stores;
+  }
+
+  /**
   * Retrieve a store
   *
   * @param {Object|Null} name
