@@ -201,10 +201,10 @@ export default class BaseStore extends EventEmitter {
       } else {
         result = this[ method ](payload.payload);
       }
-    }
 
-    if (this._waitForCalled && ! _.isFunction(_.get(result, 'then'))) {
-      throw new Error('Fluxapp Store: Action handler called `waitFor` but did not return a promise');
+      if (this._waitForCalled && ! _.isFunction(_.get(result, 'then'))) {
+        throw new Error('Fluxapp Store: Action handler called `waitFor` but did not return a promise');
+      }
     }
 
     this._waitForCalled = false;
