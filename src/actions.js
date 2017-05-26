@@ -9,6 +9,31 @@ import {
   ListenerDispatchError,
 } from './errors';
 
+function getClassMethods(instance) {
+  const ret = new Set();
+  let obj = _.get(instance, 'constructor.prototype');
+  let cont = true;
+
+  do {
+    if (obj) {
+      _.each(Object.getOwnPropertyNames(obj), (name) => {
+        if (
+          name.indexOf('_') !== 0 &&
+          name !== 'constructor' &&
+          _.isFunction(instance[ name ])
+        ) {
+          ret.add(name);
+        }
+      });
+
+      obj = Object.getPrototypeOf(obj);
+    }
+
+  } while (obj && ! _.isPlainObject(obj));
+
+  return Array.from(ret);
+}
+
 export default class BaseActions {
   constructor(namespace, context) {
     this.namespace = namespace;
@@ -20,14 +45,12 @@ export default class BaseActions {
 
     this.dispatcher = context.getDispatcher();
 
-    _.each(Object.getOwnPropertyNames(this.constructor.prototype), (method) => {
+    _.each(getClassMethods(this), (method) => {
       const fn = this[method];
 
-      if (method.indexOf('_') !== 0 && _.isFunction(fn)) {
-        this[method] = function() {
-          return this._invokeAction(method, fn, ...arguments);
-        }.bind(this);
-      }
+      this[method] = function() {
+        return this._invokeAction(method, fn, ...arguments);
+      }.bind(this);
     });
   }
 
@@ -188,6 +211,15 @@ export default class BaseActions {
    }
 
    /**
+    * Proxy to fluxApp.getStore
+    *
+    * @param {String} name
+    */
+    hasStore(name) {
+      return this.context.hasStore(name.trim());
+    }
+
+   /**
     * Proxy to fluxApp.getActions
     * @param {String} namespace
     */
@@ -207,5 +239,3 @@ export default class BaseActions {
      return actions[method].bind(actions);
    }
 }
-
-export default BaseActions;

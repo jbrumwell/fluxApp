@@ -25,6 +25,26 @@ var _lodash2 = _interopRequireDefault(_lodash);
 
 var _errors = require('./errors');
 
+function getClassMethods(instance) {
+  var ret = new Set();
+  var obj = _lodash2['default'].get(instance, 'constructor.prototype');
+  var cont = true;
+
+  do {
+    if (obj) {
+      _lodash2['default'].each(Object.getOwnPropertyNames(obj), function (name) {
+        if (name.indexOf('_') !== 0 && name !== 'constructor' && _lodash2['default'].isFunction(instance[name])) {
+          ret.add(name);
+        }
+      });
+
+      obj = Object.getPrototypeOf(obj);
+    }
+  } while (obj && !_lodash2['default'].isPlainObject(obj));
+
+  return Array.from(ret);
+}
+
 var BaseActions = (function () {
   function BaseActions(namespace, context) {
     var _this = this;
@@ -40,14 +60,12 @@ var BaseActions = (function () {
 
     this.dispatcher = context.getDispatcher();
 
-    _lodash2['default'].each(Object.getOwnPropertyNames(this.constructor.prototype), function (method) {
+    _lodash2['default'].each(getClassMethods(this), function (method) {
       var fn = _this[method];
 
-      if (method.indexOf('_') !== 0 && _lodash2['default'].isFunction(fn)) {
-        _this[method] = (function () {
-          return this._invokeAction.apply(this, [method, fn].concat(_slice.call(arguments)));
-        }).bind(_this);
-      }
+      _this[method] = (function () {
+        return this._invokeAction.apply(this, [method, fn].concat(_slice.call(arguments)));
+      }).bind(_this);
     });
   }
 
@@ -213,6 +231,17 @@ var BaseActions = (function () {
     }
 
     /**
+     * Proxy to fluxApp.getStore
+     *
+     * @param {String} name
+     */
+  }, {
+    key: 'hasStore',
+    value: function hasStore(name) {
+      return this.context.hasStore(name.trim());
+    }
+
+    /**
      * Proxy to fluxApp.getActions
      * @param {String} namespace
      */
@@ -240,6 +269,5 @@ var BaseActions = (function () {
   return BaseActions;
 })();
 
-exports['default'] = BaseActions;
 exports['default'] = BaseActions;
 module.exports = exports['default'];

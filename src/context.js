@@ -277,7 +277,7 @@ export default class FluxAppContext {
   getStore(name) {
     this.aliveCheck('getStore(' + name + ')');
 
-    const store = this._stores[name];
+    const store = _.get(this._stores, name);
 
     if (! store) {
       throw new Error('fluxApp: Could not locate store by the name ' + name);
@@ -294,7 +294,7 @@ export default class FluxAppContext {
   hasStore(name) {
     this.aliveCheck(`hasStore(${name})`);
 
-    return !! this._stores[name];
+    return _.has(this._stores, name);
   }
 
   /**

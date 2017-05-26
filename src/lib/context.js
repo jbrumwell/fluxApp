@@ -71,14 +71,19 @@ var FluxAppContext = (function () {
     this.destroyed = false;
   }
 
-  /**
-  * Rehydrate Context
-  *
-  * @param  {Object} state
-  * @return {fluxAppContext}
-  */
-
   _createClass(FluxAppContext, [{
+    key: 'stubActions',
+    value: function stubActions(actions) {
+      return;
+    }
+
+    /**
+    * Rehydrate Context
+    *
+    * @param  {Object} state
+    * @return {fluxAppContext}
+    */
+  }, {
     key: 'rehydrate',
     value: function rehydrate(state) {
       this.aliveCheck('rehydrate()');
@@ -332,7 +337,7 @@ var FluxAppContext = (function () {
     value: function getStore(name) {
       this.aliveCheck('getStore(' + name + ')');
 
-      var store = this._stores[name];
+      var store = _lodash2['default'].get(this._stores, name);
 
       if (!store) {
         throw new Error('fluxApp: Could not locate store by the name ' + name);
@@ -351,7 +356,7 @@ var FluxAppContext = (function () {
     value: function hasStore(name) {
       this.aliveCheck('hasStore(' + name + ')');
 
-      return !!this._stores[name];
+      return _lodash2['default'].has(this._stores, name);
     }
 
     /**
