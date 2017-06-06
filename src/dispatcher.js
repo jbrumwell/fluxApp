@@ -19,6 +19,9 @@ export default class Dispatcher {
   _events = {};
   _queued = [];
 
+  _isDispatching = false;
+  _isDispatchingEvent = null;
+
   /**
    * Register a callback with the dispatcher
    *
@@ -277,6 +280,24 @@ export default class Dispatcher {
 
     return ! _.size(pending) ? Promise.resolve() :
                                Promise.mapSeries(pending, this._dispatchJob.bind(this));
+  }
+
+  /**
+   * Is the dispatcher currently dispatching
+   *
+   * @return {Boolean} [description]
+   */
+  isDispatching() {
+    return this._isDispatching;
+  }
+
+  /**
+   * Method for retrieving the current event being dispatched
+   *
+   * @return {String}
+   */
+  getCurrentEvent() {
+    return this._isDispatchingEvent;
   }
 
   /*

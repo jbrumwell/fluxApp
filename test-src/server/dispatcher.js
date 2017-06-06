@@ -19,6 +19,42 @@ describe('Dispatcher', function() {
     callbackB = mysinon.spy();
   });
 
+  it('should allow for inspection of dispatching status', function(done) {
+    var dispatch1 = mysinon.spy();
+    var dispatch2 = mysinon.spy();
+    dispatcher.register(function(payload) {
+      expect(dispatcher.isDispatching()).to.equal(true);
+    });
+
+    var payload = {
+      type : 'initial'
+    };
+
+    expect(dispatcher.isDispatching()).to.equal(false);
+
+    dispatcher.dispatch(payload).then(function() {
+      expect(dispatcher.isDispatching()).to.equal(false);
+      done();
+    });
+  });
+
+  it.only('should allow for getting the current dispatched event', function(done) {
+    var dispatch1 = mysinon.spy();
+    var dispatch2 = mysinon.spy();
+    var payload = {
+      actionType : 'initial'
+    };
+
+    dispatcher.register(function(payload) {
+      expect(dispatcher.getCurrentEvent()).to.equal(payload.actionType);
+    });
+
+    dispatcher.dispatch(payload).then(function() {
+      expect(dispatcher.getCurrentEvent()).to.equal(null);
+      done();
+    });
+  });
+
   it('should execute all subscriber callbacks', function(done) {
     dispatcher.register(callbackA);
     dispatcher.register(callbackB);
