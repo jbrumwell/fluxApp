@@ -195,6 +195,47 @@ describe('store', () => {
     store.setSomething();
   });
 
+  it('should debounce emit a change event when state is changed', (done) => {
+    const storeClass = class TestStore extends BaseStore {
+      getInitialState() {
+        return {
+          something : 'else',
+        };
+      }
+
+      setSomething() {
+        this.setState({
+          something : 'new',
+        });
+
+        this.setState({
+          another : 'thing',
+        });
+
+        this.setState({
+          one : 'more',
+        });
+      }
+
+      getSomething() {
+        return this.state.something;
+      }
+    };
+    const store = createStore('exposed', storeClass);
+
+    store.addChangeListener(function() {
+      const state = store.getMutableState();
+
+      expect(state.something).to.equal('new');
+      expect(state.another).to.equal('thing');
+      expect(state.one).to.equal('more');
+
+      done();
+    });
+
+    store.setSomething();
+  });
+
   it('should emit a change event with state and store', (done) => {
     const storeClass = class TestStore extends BaseStore {
       getInitialState() {

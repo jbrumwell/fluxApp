@@ -351,9 +351,65 @@ describe('store', function () {
     store.setSomething();
   });
 
-  it('should emit a change event with state and store', function (done) {
+  it.only('should debounce emit a change event when state is changed', function (done) {
     var storeClass = (function (_BaseStore13) {
       _inherits(TestStore, _BaseStore13);
+
+      function TestStore() {
+        _classCallCheck(this, TestStore);
+
+        _get(Object.getPrototypeOf(TestStore.prototype), 'constructor', this).apply(this, arguments);
+      }
+
+      _createClass(TestStore, [{
+        key: 'getInitialState',
+        value: function getInitialState() {
+          return {
+            something: 'else'
+          };
+        }
+      }, {
+        key: 'setSomething',
+        value: function setSomething() {
+          this.setState({
+            something: 'new'
+          });
+
+          this.setState({
+            another: 'thing'
+          });
+
+          this.setState({
+            one: 'more'
+          });
+        }
+      }, {
+        key: 'getSomething',
+        value: function getSomething() {
+          return this.state.something;
+        }
+      }]);
+
+      return TestStore;
+    })(_lib.BaseStore);
+    var store = createStore('exposed', storeClass);
+
+    store.addChangeListener(function () {
+      var state = store.getMutableState();
+
+      (0, _chai.expect)(state.something).to.equal('new');
+      (0, _chai.expect)(state.another).to.equal('thing');
+      (0, _chai.expect)(state.one).to.equal('more');
+
+      done();
+    });
+
+    store.setSomething();
+  });
+
+  it('should emit a change event with state and store', function (done) {
+    var storeClass = (function (_BaseStore14) {
+      _inherits(TestStore, _BaseStore14);
 
       function TestStore() {
         _classCallCheck(this, TestStore);
@@ -396,8 +452,8 @@ describe('store', function () {
   });
 
   it('should dehydrate to false if unchanged', function () {
-    var storeClass = (function (_BaseStore14) {
-      _inherits(TestStore, _BaseStore14);
+    var storeClass = (function (_BaseStore15) {
+      _inherits(TestStore, _BaseStore15);
 
       function TestStore() {
         _classCallCheck(this, TestStore);
@@ -425,8 +481,8 @@ describe('store', function () {
   });
 
   it('should dehydrate its state', function () {
-    var storeClass = (function (_BaseStore15) {
-      _inherits(TestStore, _BaseStore15);
+    var storeClass = (function (_BaseStore16) {
+      _inherits(TestStore, _BaseStore16);
 
       function TestStore() {
         _classCallCheck(this, TestStore);
@@ -464,8 +520,8 @@ describe('store', function () {
   });
 
   it('should rehydrate the store with the supplied state', function () {
-    var storeClass = (function (_BaseStore16) {
-      _inherits(TestStore, _BaseStore16);
+    var storeClass = (function (_BaseStore17) {
+      _inherits(TestStore, _BaseStore17);
 
       function TestStore() {
         _classCallCheck(this, TestStore);
@@ -507,8 +563,8 @@ describe('store', function () {
   });
 
   it('should rehydrate from action result', function (done) {
-    var storeClass = (function (_BaseStore17) {
-      _inherits(TestStore, _BaseStore17);
+    var storeClass = (function (_BaseStore18) {
+      _inherits(TestStore, _BaseStore18);
 
       function TestStore() {
         _classCallCheck(this, TestStore);
@@ -570,8 +626,8 @@ describe('store', function () {
   });
 
   it('should rehydrate from action result async', function (done) {
-    var storeClass = (function (_BaseStore18) {
-      _inherits(TestStore, _BaseStore18);
+    var storeClass = (function (_BaseStore19) {
+      _inherits(TestStore, _BaseStore19);
 
       function TestStore() {
         _classCallCheck(this, TestStore);
@@ -635,8 +691,8 @@ describe('store', function () {
   });
 
   it('should bind to actions provided', function (done) {
-    var storeClass = (function (_BaseStore19) {
-      _inherits(TestStore, _BaseStore19);
+    var storeClass = (function (_BaseStore20) {
+      _inherits(TestStore, _BaseStore20);
 
       function TestStore() {
         _classCallCheck(this, TestStore);
@@ -692,8 +748,8 @@ describe('store', function () {
   });
 
   it('should bind to actions provided at runtime', function (done) {
-    var storeClass = (function (_BaseStore20) {
-      _inherits(TestStore, _BaseStore20);
+    var storeClass = (function (_BaseStore21) {
+      _inherits(TestStore, _BaseStore21);
 
       function TestStore() {
         _classCallCheck(this, TestStore);
@@ -745,8 +801,8 @@ describe('store', function () {
   });
 
   it('should bind to actions already provided before runtime changes', function (done) {
-    var storeClass = (function (_BaseStore21) {
-      _inherits(TestStore, _BaseStore21);
+    var storeClass = (function (_BaseStore22) {
+      _inherits(TestStore, _BaseStore22);
 
       _createClass(TestStore, null, [{
         key: 'actions',
@@ -812,8 +868,8 @@ describe('store', function () {
   it('should not bind to actions not declared', function (done) {
     var eventCalled = mysinon.spy();
     var actionType = _lib2['default'].getActionType('user.login');
-    var storeClass = (function (_BaseStore22) {
-      _inherits(TestStore, _BaseStore22);
+    var storeClass = (function (_BaseStore23) {
+      _inherits(TestStore, _BaseStore23);
 
       function TestStore() {
         _classCallCheck(this, TestStore);
@@ -881,8 +937,8 @@ describe('store', function () {
   });
 
   it('should wait for specified stores to complete', function (done) {
-    var storeClass1 = (function (_BaseStore23) {
-      _inherits(TestStore, _BaseStore23);
+    var storeClass1 = (function (_BaseStore24) {
+      _inherits(TestStore, _BaseStore24);
 
       function TestStore() {
         _classCallCheck(this, TestStore);
@@ -908,8 +964,8 @@ describe('store', function () {
       return TestStore;
     })(_lib.BaseStore);
 
-    var storeClass2 = (function (_BaseStore24) {
-      _inherits(TestStore, _BaseStore24);
+    var storeClass2 = (function (_BaseStore25) {
+      _inherits(TestStore, _BaseStore25);
 
       function TestStore() {
         _classCallCheck(this, TestStore);
@@ -973,8 +1029,8 @@ describe('store', function () {
   });
 
   it('should throw a Listener error if waitFor is called an no promise is returned', function (done) {
-    var storeClass1 = (function (_BaseStore25) {
-      _inherits(TestStore, _BaseStore25);
+    var storeClass1 = (function (_BaseStore26) {
+      _inherits(TestStore, _BaseStore26);
 
       function TestStore() {
         _classCallCheck(this, TestStore);
@@ -1000,8 +1056,8 @@ describe('store', function () {
       return TestStore;
     })(_lib.BaseStore);
 
-    var storeClass2 = (function (_BaseStore26) {
-      _inherits(TestStore, _BaseStore26);
+    var storeClass2 = (function (_BaseStore27) {
+      _inherits(TestStore, _BaseStore27);
 
       function TestStore() {
         _classCallCheck(this, TestStore);
@@ -1067,8 +1123,8 @@ describe('store', function () {
   });
 
   it('should be able to reset state', function (done) {
-    var storeClass = (function (_BaseStore27) {
-      _inherits(TestStore, _BaseStore27);
+    var storeClass = (function (_BaseStore28) {
+      _inherits(TestStore, _BaseStore28);
 
       function TestStore() {
         _classCallCheck(this, TestStore);

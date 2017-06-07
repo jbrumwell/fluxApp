@@ -38,7 +38,7 @@ describe('Dispatcher', function () {
     });
   });
 
-  it.only('should allow for getting the current dispatched event', function (done) {
+  it('should allow for getting the current dispatched event', function (done) {
     var dispatch1 = mysinon.spy();
     var dispatch2 = mysinon.spy();
     var payload = {
