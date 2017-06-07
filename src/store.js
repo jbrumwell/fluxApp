@@ -75,6 +75,27 @@ export default class BaseStore extends EventEmitter {
   }
 
   /**
+   * Initiate the dispatch event
+   */
+  _initDispatcher() {
+    const Dispatcher = this.context.getDispatcher();
+    const events = _.keys(this._actionTypes);
+
+    if (events.length) {
+      this._dispatchToken = Dispatcher.register(
+        this._processActionEvent.bind(this),
+        events
+      );
+    }
+  }
+
+  _getDispatchedEvent() {
+    const Dispatcher = this.context.getDispatcher();
+
+    return Dispatcher.getCurrentEvent();
+  }
+
+  /**
    * allow for runtime listenTo
    * @param {Object} actions
    * @param {Boolean} bind
@@ -114,21 +135,6 @@ export default class BaseStore extends EventEmitter {
     actionType = namespaceTransform(actionType);
 
     return !! this._actionTypes[actionType];
-  }
-
-  /**
-   * Initiate the dispatch event
-   */
-  _initDispatcher() {
-    const Dispatcher = this.context.getDispatcher();
-    const events = _.keys(this._actionTypes);
-
-    if (events.length) {
-      this._dispatchToken = Dispatcher.register(
-        this._processActionEvent.bind(this),
-        events
-      );
-    }
   }
 
   /**
@@ -280,7 +286,7 @@ export default class BaseStore extends EventEmitter {
     this.state = isEqual ? this.state : immutable(currentState).merge(state);
 
     if (! noEvent && ! isEqual) {
-      this.emitChange();
+      this.emitChange(this._getDispatchedEvent());
     }
 
     return this;
@@ -311,7 +317,7 @@ export default class BaseStore extends EventEmitter {
     this.state = isEqual ? this.state : immutable(state);
 
     if (! noEvent && ! isEqual) {
-      this.emitChange();
+      this.emitChange(this._getDispatchedEvent());
     }
 
     return this;
@@ -334,8 +340,8 @@ export default class BaseStore extends EventEmitter {
   /**
    * Inform listeners that the store has updated
    */
-  emitChange() {
-    this.emit(CHANGE_EVENT, this.getMutableState(), this);
+  emitChange(actionType) {
+    this.emit(CHANGE_EVENT, this.getMutableState(), this, actionType);
 
     return this;
   }
@@ -428,5 +434,3 @@ export default class BaseStore extends EventEmitter {
     return this;
   }
 }
-
-export default BaseStore;

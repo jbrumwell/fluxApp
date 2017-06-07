@@ -102,7 +102,7 @@ exports['default'] = function () {
       });
     });
 
-    it('should get notified when a store updates', function () {
+    it('should get notified when a store updates', function (done) {
       var storeClass = (function (_BaseStore2) {
         _inherits(TestStore, _BaseStore2);
 
@@ -130,7 +130,9 @@ exports['default'] = function () {
           }
         },
 
-        onTestUpdate: spy,
+        onTestUpdate: function onTestUpdate() {
+          done();
+        },
 
         render: function render() {
           return _react2['default'].createElement(
@@ -146,11 +148,9 @@ exports['default'] = function () {
       context.getStore('test');
 
       store.emitChange();
-
-      expect(spy.called).to.equal(true);
     });
 
-    it('should not get notified when a store updates, when unmounted', function () {
+    it('should not get notified when a store updates, when unmounted', function (done) {
       var storeClass = (function (_BaseStore3) {
         _inherits(TestStore, _BaseStore3);
 
@@ -195,20 +195,25 @@ exports['default'] = function () {
 
       store.emitChange();
 
-      expect(spy.called).to.equal(true);
+      setTimeout(function () {
+        expect(spy.called).to.equal(true);
 
-      var elem = _libDom2['default'].findDOMNode(renderedComponent).parentNode;
-      _libDom2['default'].unmountComponentAtNode(elem);
-      document.body.removeChild(elem);
+        var elem = _libDom2['default'].findDOMNode(renderedComponent).parentNode;
+        _libDom2['default'].unmountComponentAtNode(elem);
+        document.body.removeChild(elem);
 
-      renderedComponent = null;
+        renderedComponent = null;
 
-      store.emitChange();
+        store.emitChange();
 
-      expect(spy.callCount).to.equal(1);
+        setTimeout(function () {
+          expect(spy.callCount).to.equal(1);
+          done();
+        }, 200);
+      }, 200);
     });
 
-    it('should have access to custom context', function () {
+    it('should have access to custom context', function (done) {
       var storeClass = (function (_BaseStore4) {
         _inherits(TestStore, _BaseStore4);
 
@@ -268,8 +273,11 @@ exports['default'] = function () {
 
       var state = store.getState();
 
-      expect(spy.called).to.equal(true);
-      expect(state.custom).to.equal(true);
+      setTimeout(function () {
+        expect(spy.called).to.equal(true);
+        expect(state.custom).to.equal(true);
+        done();
+      }, 200);
     });
   });
 };

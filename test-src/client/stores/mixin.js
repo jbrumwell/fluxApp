@@ -66,7 +66,43 @@ export default () => {
       });
     });
 
-    it('should get notified when a store updates', () => {
+    it('should get notified when a store updates', (done) => {
+      const storeClass = class TestStore extends BaseStore {};
+
+      fluxapp.registerStore('test', storeClass);
+
+      const spy = sinon.spy();
+      const context = fluxapp.createContext();
+      const store = context.getStore('test');
+
+      renderedComponent = renderComponent({
+        mixins : [ fluxapp.Mixin ],
+
+        flux : {
+          stores : {
+            onTestUpdate : 'test',
+          },
+        },
+
+        onTestUpdate() {
+          done();
+        },
+
+        render() {
+          return (
+            <h1>Hello</h1>
+          );
+        },
+      }, {
+        context : context,
+      });
+
+      context.getStore('test');
+
+      store.emitChange();
+    });
+
+    it('should not get notified when a store updates, when unmounted', (done) => {
       const storeClass = class TestStore extends BaseStore {};
 
       fluxapp.registerStore('test', storeClass);
@@ -99,56 +135,25 @@ export default () => {
 
       store.emitChange();
 
-      expect(spy.called).to.equal(true);
+      setTimeout(() => {
+        expect(spy.called).to.equal(true);
+
+        const elem = DOM.findDOMNode(renderedComponent).parentNode;
+        DOM.unmountComponentAtNode(elem);
+        document.body.removeChild(elem);
+
+        renderedComponent = null;
+
+        store.emitChange();
+
+        setTimeout(() => {
+          expect(spy.callCount).to.equal(1);
+          done();
+        }, 200);
+      }, 200);
     });
 
-    it('should not get notified when a store updates, when unmounted', () => {
-      const storeClass = class TestStore extends BaseStore {};
-
-      fluxapp.registerStore('test', storeClass);
-
-      const spy = sinon.spy();
-      const context = fluxapp.createContext();
-      const store = context.getStore('test');
-
-      renderedComponent = renderComponent({
-        mixins : [ fluxapp.Mixin ],
-
-        flux : {
-          stores : {
-            onTestUpdate : 'test',
-          },
-        },
-
-        onTestUpdate : spy,
-
-        render() {
-          return (
-            <h1>Hello</h1>
-          );
-        },
-      }, {
-        context : context,
-      });
-
-      context.getStore('test');
-
-      store.emitChange();
-
-      expect(spy.called).to.equal(true);
-
-      const elem = DOM.findDOMNode(renderedComponent).parentNode;
-      DOM.unmountComponentAtNode(elem);
-      document.body.removeChild(elem);
-
-      renderedComponent = null;
-
-      store.emitChange();
-
-      expect(spy.callCount).to.equal(1);
-    });
-
-    it('should have access to custom context', () => {
+    it('should have access to custom context', (done) => {
       const storeClass = class TestStore extends BaseStore {
         method() {
           this.setState({
@@ -193,8 +198,11 @@ export default () => {
 
       const state = store.getState();
 
-      expect(spy.called).to.equal(true);
-      expect(state.custom).to.equal(true);
+      setTimeout(() => {
+        expect(spy.called).to.equal(true);
+        expect(state.custom).to.equal(true);
+        done();
+      }, 200);
     });
   });
 };

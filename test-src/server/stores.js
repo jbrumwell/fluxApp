@@ -223,8 +223,8 @@ describe('store', () => {
     };
     const store = createStore('exposed', storeClass);
 
-    store.addChangeListener(function() {
-      const state = store.getMutableState();
+    store.addChangeListener(function(state, store, actionType) {
+      expect(actionType).to.equal(null);
 
       expect(state.something).to.equal('new');
       expect(state.another).to.equal('thing');

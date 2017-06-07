@@ -351,7 +351,7 @@ describe('store', function () {
     store.setSomething();
   });
 
-  it.only('should debounce emit a change event when state is changed', function (done) {
+  it('should debounce emit a change event when state is changed', function (done) {
     var storeClass = (function (_BaseStore13) {
       _inherits(TestStore, _BaseStore13);
 
@@ -394,8 +394,8 @@ describe('store', function () {
     })(_lib.BaseStore);
     var store = createStore('exposed', storeClass);
 
-    store.addChangeListener(function () {
-      var state = store.getMutableState();
+    store.addChangeListener(function (state, store, actionType) {
+      (0, _chai.expect)(actionType).to.equal(null);
 
       (0, _chai.expect)(state.something).to.equal('new');
       (0, _chai.expect)(state.another).to.equal('thing');

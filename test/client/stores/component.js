@@ -191,9 +191,10 @@ exports['default'] = function () {
 
         _createClass(TestComponent, [{
           key: 'onTestUpdate',
-          value: function onTestUpdate(state, store) {
+          value: function onTestUpdate(state, store, actionType) {
             expect(state.success).to.equal(true);
             expect(store instanceof storeClass).to.equal(true);
+            expect(actionType).to.equal('TEST_METHOD');
             done();
           }
         }, {
@@ -224,7 +225,7 @@ exports['default'] = function () {
       testActions.method();
     });
 
-    it('should not get notified when a store updates, when unmounted', function () {
+    it('should not get notified when a store updates, when unmounted', function (done) {
       var storeClass = (function (_BaseStore3) {
         _inherits(TestStore, _BaseStore3);
 
@@ -287,21 +288,26 @@ exports['default'] = function () {
 
       store.emitChange();
 
-      expect(spy.called).to.equal(true);
-      expect(spy.callCount).to.equal(1);
+      setTimeout(function () {
+        expect(spy.called).to.equal(true);
+        expect(spy.callCount).to.equal(1);
 
-      var elem = _libDom2['default'].findDOMNode(renderedComponent).parentNode;
-      _libDom2['default'].unmountComponentAtNode(elem);
-      document.body.removeChild(elem);
+        var elem = _libDom2['default'].findDOMNode(renderedComponent).parentNode;
+        _libDom2['default'].unmountComponentAtNode(elem);
+        document.body.removeChild(elem);
 
-      renderedComponent = null;
+        renderedComponent = null;
 
-      store.emitChange();
+        store.emitChange();
 
-      expect(spy.callCount).to.equal(1);
+        setTimeout(function () {
+          expect(spy.callCount).to.equal(1);
+          done();
+        }, 200);
+      }, 200);
     });
 
-    it('should have access to custom context', function () {
+    it('should have access to custom context', function (done) {
       var storeClass = (function (_BaseStore4) {
         _inherits(TestStore, _BaseStore4);
 
@@ -377,8 +383,11 @@ exports['default'] = function () {
 
       var state = store.getState();
 
-      expect(spy.called).to.equal(true);
-      expect(state.custom).to.equal(true);
+      setTimeout(function () {
+        expect(spy.called).to.equal(true);
+        expect(state.custom).to.equal(true);
+        done();
+      }, 200);
     });
   });
 };
