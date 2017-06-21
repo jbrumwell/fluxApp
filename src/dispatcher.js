@@ -160,7 +160,9 @@ export default class Dispatcher {
       const resolve = args[1];
       const reject = args[2];
 
-      this.dispatch(payload).then(resolve, reject);
+      setTimeout(() => {
+        this.dispatch(payload).then(resolve, reject);
+      });
     }
   }
 
