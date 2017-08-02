@@ -18,10 +18,6 @@ export default class BaseStore extends EventEmitter {
       throw new Error('fluxApp:BaseStore Context must be passed to the BaseStore');
     }
 
-    this.emitChange = _.debounce(this.emitChange.bind(this), 10, {
-      maxWait : 50,
-    });
-
     this.context = context;
     this._initActions();
     this._initDispatcher();

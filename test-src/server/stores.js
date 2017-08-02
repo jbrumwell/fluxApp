@@ -195,7 +195,7 @@ describe('store', () => {
     store.setSomething();
   });
 
-  it('should debounce emit a change event when state is changed', (done) => {
+  it.skip('should debounce emit a change event when state is changed', (done) => {
     const storeClass = class TestStore extends BaseStore {
       getInitialState() {
         return {

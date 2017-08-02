@@ -351,7 +351,7 @@ describe('store', function () {
     store.setSomething();
   });
 
-  it('should debounce emit a change event when state is changed', function (done) {
+  it.skip('should debounce emit a change event when state is changed', function (done) {
     var storeClass = (function (_BaseStore13) {
       _inherits(TestStore, _BaseStore13);
 
