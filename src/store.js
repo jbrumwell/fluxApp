@@ -1,3 +1,4 @@
+import Promise from 'bluebird';
 import { EventEmitter } from 'events';
 import _ from 'lodash';
 import immutable from 'seamless-immutable';
@@ -97,7 +98,7 @@ export default class BaseStore extends EventEmitter {
    * @param {Boolean} bind
    */
   listenTo(actionType, method, bind = true) {
-    actionType = namespaceTransform(actionType);
+    actionType = actionType !== '*' ? namespaceTransform(actionType) : actionType;
 
     if (_.isFunction(method)) {
       method = method.name;
@@ -193,6 +194,10 @@ export default class BaseStore extends EventEmitter {
     return this.getStore(name).getMutableState();
   }
 
+  _hasCatchall() {
+    return !! this._actionTypes['*'];
+  }
+
   /**
    * Process a dispatched event
    * @param {Object} payload
@@ -215,7 +220,15 @@ export default class BaseStore extends EventEmitter {
 
     this._waitForCalled = false;
 
-    return result;
+    return Promise.resolve(result)
+    .tap(() => {
+      const sendWildcard = payload.actionType !== '*' && this._hasCatchall();
+
+      return sendWildcard ? this._processActionEvent({
+        actionType : '*',
+        payload,
+      }) : null;
+    });
   }
 
   /**

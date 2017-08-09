@@ -865,8 +865,7 @@ describe('store', function () {
     actions.login('user', 'password');
   });
 
-  it('should not bind to actions not declared', function (done) {
-    var eventCalled = mysinon.spy();
+  it('should allow binding to all events', function (done) {
     var actionType = _lib2['default'].getActionType('user.login');
     var storeClass = (function (_BaseStore23) {
       _inherits(TestStore, _BaseStore23);
@@ -878,21 +877,19 @@ describe('store', function () {
       }
 
       _createClass(TestStore, [{
-        key: 'onUserLogin',
-        value: function onUserLogin(result, actionType) {
-          (0, _chai.expect)(actionType).to.equal(actionType);
-          (0, _chai.expect)(result.success).to.equal(true);
-          done();
-        }
-      }, {
-        key: '_processActionEvent',
-        value: function _processActionEvent(payload) {
-          eventCalled();
+        key: 'onActionEvent',
+        value: function onActionEvent(result, aT) {
+          if (result.actionType === actionType) {
+            (0, _chai.expect)(aT).to.equal('*');
+            (0, _chai.expect)(result.actionType).to.equal(actionType);
+            (0, _chai.expect)(result.payload.success).to.equal(true);
+            done();
+          }
         }
       }], [{
         key: 'actions',
         value: {
-          onUserLogin: 'user.login'
+          onActionEvent: '*'
         },
         enumerable: true
       }]);
@@ -929,76 +926,37 @@ describe('store', function () {
 
     var actions = context.getActions('user');
 
-    actions.login('user', 'password').then(function () {
-      return actions.notObserved();
-    }).then(function () {
-      (0, _chai.expect)(eventCalled.callCount).to.equal(1);
-    }).nodeify(done);
+    actions.login('user', 'password');
   });
 
-  it('should wait for specified stores to complete', function (done) {
-    var storeClass1 = (function (_BaseStore24) {
+  it('should allow binding to all events runtime', function (done) {
+    var actionType = _lib2['default'].getActionType('user.login');
+    var storeClass = (function (_BaseStore24) {
       _inherits(TestStore, _BaseStore24);
 
       function TestStore() {
         _classCallCheck(this, TestStore);
 
         _get(Object.getPrototypeOf(TestStore.prototype), 'constructor', this).apply(this, arguments);
+
+        this.listenTo('*', 'onActionEvent');
       }
 
       _createClass(TestStore, [{
-        key: 'onUserLogin',
-        value: function onUserLogin(result, actionType) {
-          this.setState({
-            ran: true
-          });
-        }
-      }], [{
-        key: 'actions',
-        value: {
-          onUserLogin: 'user.login'
-        },
-        enumerable: true
-      }]);
-
-      return TestStore;
-    })(_lib.BaseStore);
-
-    var storeClass2 = (function (_BaseStore25) {
-      _inherits(TestStore, _BaseStore25);
-
-      function TestStore() {
-        _classCallCheck(this, TestStore);
-
-        _get(Object.getPrototypeOf(TestStore.prototype), 'constructor', this).apply(this, arguments);
-      }
-
-      _createClass(TestStore, [{
-        key: 'onUserLogin',
-        value: function onUserLogin(result, actionType) {
-          var _this = this;
-
-          return this.waitFor('testStore').then(function () {
-            var state = _this.getStore('testStore').getState();
-            (0, _chai.expect)(state.ran).to.equal(true);
-            (0, _chai.expect)(actionType).to.equal(_lib2['default'].getActionType('user.login'));
-            (0, _chai.expect)(result.success).to.equal(true);
+        key: 'onActionEvent',
+        value: function onActionEvent(result, aT) {
+          if (result.actionType === actionType) {
+            (0, _chai.expect)(aT).to.equal('*');
+            (0, _chai.expect)(result.actionType).to.equal(actionType);
+            (0, _chai.expect)(result.payload.success).to.equal(true);
             done();
-          });
+          }
         }
-      }], [{
-        key: 'actions',
-        value: {
-          onUserLogin: 'user.login'
-        },
-        enumerable: true
       }]);
 
       return TestStore;
     })(_lib.BaseStore);
-
-    createStore('testStore', storeClass1);
-    createStore('actions', storeClass2);
+    createStore('actions', storeClass);
 
     var actionClass = (function (_BaseActions7) {
       _inherits(TestActions, _BaseActions7);
@@ -1016,6 +974,9 @@ describe('store', function () {
             success: true
           };
         }
+      }, {
+        key: 'notObserved',
+        value: function notObserved() {}
       }]);
 
       return TestActions;
@@ -1028,7 +989,78 @@ describe('store', function () {
     actions.login('user', 'password');
   });
 
-  it('should throw a Listener error if waitFor is called an no promise is returned', function (done) {
+  it('should not bind to actions not declared', function (done) {
+    var eventCalled = mysinon.spy();
+    var actionType = _lib2['default'].getActionType('user.login');
+    var storeClass = (function (_BaseStore25) {
+      _inherits(TestStore, _BaseStore25);
+
+      function TestStore() {
+        _classCallCheck(this, TestStore);
+
+        _get(Object.getPrototypeOf(TestStore.prototype), 'constructor', this).apply(this, arguments);
+      }
+
+      _createClass(TestStore, [{
+        key: 'onUserLogin',
+        value: function onUserLogin(result, actionType) {
+          (0, _chai.expect)(actionType).to.equal(actionType);
+          (0, _chai.expect)(result.success).to.equal(true);
+          done();
+        }
+      }, {
+        key: '_processActionEvent',
+        value: function _processActionEvent(payload) {
+          eventCalled();
+        }
+      }], [{
+        key: 'actions',
+        value: {
+          onUserLogin: 'user.login'
+        },
+        enumerable: true
+      }]);
+
+      return TestStore;
+    })(_lib.BaseStore);
+    createStore('actions', storeClass);
+
+    var actionClass = (function (_BaseActions8) {
+      _inherits(TestActions, _BaseActions8);
+
+      function TestActions() {
+        _classCallCheck(this, TestActions);
+
+        _get(Object.getPrototypeOf(TestActions.prototype), 'constructor', this).apply(this, arguments);
+      }
+
+      _createClass(TestActions, [{
+        key: 'login',
+        value: function login() {
+          return {
+            success: true
+          };
+        }
+      }, {
+        key: 'notObserved',
+        value: function notObserved() {}
+      }]);
+
+      return TestActions;
+    })(_lib.BaseActions);
+
+    _lib2['default'].registerActions('user', actionClass);
+
+    var actions = context.getActions('user');
+
+    actions.login('user', 'password').then(function () {
+      return actions.notObserved();
+    }).then(function () {
+      (0, _chai.expect)(eventCalled.callCount).to.equal(1);
+    }).nodeify(done);
+  });
+
+  it('should wait for specified stores to complete', function (done) {
     var storeClass1 = (function (_BaseStore26) {
       _inherits(TestStore, _BaseStore26);
 
@@ -1068,6 +1100,98 @@ describe('store', function () {
       _createClass(TestStore, [{
         key: 'onUserLogin',
         value: function onUserLogin(result, actionType) {
+          var _this = this;
+
+          return this.waitFor('testStore').then(function () {
+            var state = _this.getStore('testStore').getState();
+            (0, _chai.expect)(state.ran).to.equal(true);
+            (0, _chai.expect)(actionType).to.equal(_lib2['default'].getActionType('user.login'));
+            (0, _chai.expect)(result.success).to.equal(true);
+            done();
+          });
+        }
+      }], [{
+        key: 'actions',
+        value: {
+          onUserLogin: 'user.login'
+        },
+        enumerable: true
+      }]);
+
+      return TestStore;
+    })(_lib.BaseStore);
+
+    createStore('testStore', storeClass1);
+    createStore('actions', storeClass2);
+
+    var actionClass = (function (_BaseActions9) {
+      _inherits(TestActions, _BaseActions9);
+
+      function TestActions() {
+        _classCallCheck(this, TestActions);
+
+        _get(Object.getPrototypeOf(TestActions.prototype), 'constructor', this).apply(this, arguments);
+      }
+
+      _createClass(TestActions, [{
+        key: 'login',
+        value: function login() {
+          return {
+            success: true
+          };
+        }
+      }]);
+
+      return TestActions;
+    })(_lib.BaseActions);
+
+    _lib2['default'].registerActions('user', actionClass);
+
+    var actions = context.getActions('user');
+
+    actions.login('user', 'password');
+  });
+
+  it('should throw a Listener error if waitFor is called an no promise is returned', function (done) {
+    var storeClass1 = (function (_BaseStore28) {
+      _inherits(TestStore, _BaseStore28);
+
+      function TestStore() {
+        _classCallCheck(this, TestStore);
+
+        _get(Object.getPrototypeOf(TestStore.prototype), 'constructor', this).apply(this, arguments);
+      }
+
+      _createClass(TestStore, [{
+        key: 'onUserLogin',
+        value: function onUserLogin(result, actionType) {
+          this.setState({
+            ran: true
+          });
+        }
+      }], [{
+        key: 'actions',
+        value: {
+          onUserLogin: 'user.login'
+        },
+        enumerable: true
+      }]);
+
+      return TestStore;
+    })(_lib.BaseStore);
+
+    var storeClass2 = (function (_BaseStore29) {
+      _inherits(TestStore, _BaseStore29);
+
+      function TestStore() {
+        _classCallCheck(this, TestStore);
+
+        _get(Object.getPrototypeOf(TestStore.prototype), 'constructor', this).apply(this, arguments);
+      }
+
+      _createClass(TestStore, [{
+        key: 'onUserLogin',
+        value: function onUserLogin(result, actionType) {
           var _this2 = this;
 
           this.waitFor('testStore').then(function () {
@@ -1091,8 +1215,8 @@ describe('store', function () {
     createStore('testStore', storeClass1);
     createStore('actions', storeClass2);
 
-    var actionClass = (function (_BaseActions8) {
-      _inherits(TestActions, _BaseActions8);
+    var actionClass = (function (_BaseActions10) {
+      _inherits(TestActions, _BaseActions10);
 
       function TestActions() {
         _classCallCheck(this, TestActions);
@@ -1123,8 +1247,8 @@ describe('store', function () {
   });
 
   it('should be able to reset state', function (done) {
-    var storeClass = (function (_BaseStore28) {
-      _inherits(TestStore, _BaseStore28);
+    var storeClass = (function (_BaseStore30) {
+      _inherits(TestStore, _BaseStore30);
 
       function TestStore() {
         _classCallCheck(this, TestStore);
@@ -1160,8 +1284,8 @@ describe('store', function () {
     })(_lib.BaseStore);
     createStore('actions', storeClass);
 
-    var actionClass = (function (_BaseActions9) {
-      _inherits(TestActions, _BaseActions9);
+    var actionClass = (function (_BaseActions11) {
+      _inherits(TestActions, _BaseActions11);
 
       function TestActions() {
         _classCallCheck(this, TestActions);

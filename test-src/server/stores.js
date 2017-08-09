@@ -508,6 +508,78 @@ describe('store', () => {
     actions.login('user', 'password');
   });
 
+  it('should allow binding to all events', (done) => {
+    const actionType = fluxapp.getActionType('user.login');
+    const storeClass = class TestStore extends BaseStore {
+      static actions = {
+        onActionEvent : '*',
+      }
+
+      onActionEvent(result, aT) {
+        if (result.actionType === actionType) {
+          expect(aT).to.equal('*');
+          expect(result.actionType).to.equal(actionType);
+          expect(result.payload.success).to.equal(true);
+          done();
+        }
+      }
+    };
+    createStore('actions', storeClass);
+
+    const actionClass = class TestActions extends BaseActions {
+      login() {
+        return {
+          success : true,
+        };
+      }
+
+      notObserved() {}
+    };
+
+    fluxapp.registerActions('user', actionClass);
+
+    const actions = context.getActions('user');
+
+    actions.login('user', 'password');
+  });
+
+  it('should allow binding to all events runtime', (done) => {
+    const actionType = fluxapp.getActionType('user.login');
+    const storeClass = class TestStore extends BaseStore {
+      constructor() {
+        super(...arguments);
+
+        this.listenTo('*', 'onActionEvent');
+      }
+
+      onActionEvent(result, aT) {
+        if (result.actionType === actionType) {
+          expect(aT).to.equal('*');
+          expect(result.actionType).to.equal(actionType);
+          expect(result.payload.success).to.equal(true);
+          done();
+        }
+      }
+    };
+    createStore('actions', storeClass);
+
+    const actionClass = class TestActions extends BaseActions {
+      login() {
+        return {
+          success : true,
+        };
+      }
+
+      notObserved() {}
+    };
+
+    fluxapp.registerActions('user', actionClass);
+
+    const actions = context.getActions('user');
+
+    actions.login('user', 'password');
+  });
+
   it('should not bind to actions not declared', (done) => {
     const eventCalled = mysinon.spy();
     const actionType = fluxapp.getActionType('user.login');
