@@ -21,7 +21,7 @@ export default class BaseStore extends EventEmitter {
     this.context = context;
     this._initActions();
     this._initDispatcher();
-    this.state = immutable(this.getInitialState());
+    this.reset();
     this.init();
   }
 
@@ -65,9 +65,7 @@ export default class BaseStore extends EventEmitter {
       }
 
       value.forEach((name) => {
-        name = namespaceTransform(name);
-
-        this._actionTypes[name] = method;
+        this.listenTo(name, method, false);
       });
     });
   }
@@ -75,15 +73,43 @@ export default class BaseStore extends EventEmitter {
   /**
    * allow for runtime listenTo
    * @param {Object} actions
+   * @param {Boolean} bind
    */
-  listenTo(actionType, method) {
+  listenTo(actionType, method, bind = true) {
     actionType = namespaceTransform(actionType);
 
     if (_.isFunction(method)) {
       method = method.name;
     }
 
-    this.actionTypes[actionType] = method;
+    if (this._actionTypes[actionType]) {
+      throw new Error(
+        'Fluxapp: Already listening to ' + arguments[0] + ' at ' + this._actionTypes[actionType]
+      );
+    }
+
+    this._actionTypes[actionType] = method;
+
+    if (bind) {
+      if (! this._dispatchToken) {
+        this._initDispatcher();
+      } else {
+        const Dispatcher = this.context.getDispatcher()
+        Dispatcher.registerEvent(this._dispatchToken, actionType);
+      }
+    }
+  }
+
+  /**
+   * Check if we are already listening to this action type
+   *
+   * @param  {String}  actionType
+   * @return {Boolean}
+   */
+  isListeningTo(actionType) {
+    actionType = namespaceTransform(actionType);
+
+    return !! this._actionTypes[actionType];
   }
 
   /**
@@ -175,10 +201,10 @@ export default class BaseStore extends EventEmitter {
       } else {
         result = this[ method ](payload.payload);
       }
-    }
 
-    if (this._waitForCalled && ! _.isFunction(_.get(result, 'then'))) {
-      throw new Error('Fluxapp Store: Action handler called `waitFor` but did not return a promise');
+      if (this._waitForCalled && ! _.isFunction(_.get(result, 'then'))) {
+        throw new Error('Fluxapp Store: Action handler called `waitFor` but did not return a promise');
+      }
     }
 
     this._waitForCalled = false;
@@ -207,6 +233,10 @@ export default class BaseStore extends EventEmitter {
   * Fallback for store destruction
   */
   destroy() {}
+
+  reset() {
+    this.state = immutable(this.getInitialState());
+  }
 
   /**
    * Tests the equality of current and next state

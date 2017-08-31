@@ -66,6 +66,18 @@ describe('store', () => {
     expect(store.waitFor).to.be.a('function');
   });
 
+  it('should have a listenTo method', () => {
+    const storeClass = class TestStore extends BaseStore {};
+    const store = createStore('testing', storeClass);
+    expect(store.listenTo).to.be.a('function');
+  });
+
+  it('should have a reset method', () => {
+    const storeClass = class TestStore extends BaseStore {};
+    const store = createStore('testing', storeClass);
+    expect(store.reset).to.be.a('function');
+  });
+
   it('should obtain its initial state from getInitialState', () => {
     const storeClass = class TestStore extends BaseStore {
       getInitialState() {
@@ -386,6 +398,75 @@ describe('store', () => {
     actions.login('user', 'password');
   });
 
+  it('should bind to actions provided at runtime', (done) => {
+    const storeClass = class TestStore extends BaseStore {
+      constructor() {
+        super(...arguments);
+
+        this.listenTo('user.login', 'onUserLogin');
+      }
+
+      onUserLogin(result, actionType) {
+        expect(actionType).to.equal(fluxapp.getActionType('user.login'));
+        expect(result.success).to.equal(true);
+        done();
+      }
+    };
+    createStore('actions', storeClass);
+
+    const actionClass = class TestActions extends BaseActions {
+      login() {
+        return {
+          success : true,
+        };
+      }
+    };
+
+    fluxapp.registerActions('user', actionClass);
+
+    const actions = context.getActions('user');
+
+    actions.login('user', 'password');
+  });
+
+  it('should bind to actions already provided before runtime changes', (done) => {
+    const storeClass = class TestStore extends BaseStore {
+      static actions = {
+        onUserLogin : 'user.login',
+      };
+
+      constructor() {
+        super(...arguments);
+
+        this.listenTo('user.login:after', 'onUserLogin2');
+      }
+
+      onUserLogin2(result, actionType) {
+        expect(this.userLogin).to.equal(true);
+        done();
+      }
+
+      onUserLogin() {
+        this.userLogin = true;
+      }
+    };
+    createStore('actions', storeClass);
+
+    const actionClass = class TestActions extends BaseActions {
+      login() {
+        return {
+          success : true,
+        };
+      }
+    };
+
+    fluxapp.registerActions('user', actionClass);
+
+    const actions = context.getActions('user');
+
+    actions.login('user', 'password');
+  });
+
   it('should not bind to actions not declared', (done) => {
     const eventCalled = mysinon.spy();
     const actionType = fluxapp.getActionType('user.login');
@@ -523,5 +604,51 @@ describe('store', () => {
       expect(result.status).to.equal(0);
       expect(result.error).to.be.instanceof(ListenerDispatchError);
     }).nodeify(done);
+  });
+
+  it('should be able to reset state', (done) => {
+    const storeClass = class TestStore extends BaseStore {
+      static actions = {
+        onUserLogin : 'user.login',
+      };
+
+      getInitialState() {
+        return {
+          boolean : true,
+        };
+      }
+
+      onUserLogin(result, actionType) {
+        expect(actionType).to.equal(fluxapp.getActionType('user.login'));
+        expect(result.success).to.equal(true);
+        this.setState({
+          boolean : false,
+        });
+      }
+    };
+    createStore('actions', storeClass);
+
+    const actionClass = class TestActions extends BaseActions {
+      login() {
+        return {
+          success : true,
+        };
+      }
+    };
+
+    fluxapp.registerActions('user', actionClass);
+
+    const actions = context.getActions('user');
+    const store = context.getStore('actions');
+
+    expect(store.state.boolean).to.equal(true);
+
+    actions.login('user', 'password')
+    .then(() => {
+      expect(store.state.boolean).to.equal(false);
+      store.reset();
+      expect(store.state.boolean).to.equal(true);
+      done();
+    });
   });
 });

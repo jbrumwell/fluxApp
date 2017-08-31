@@ -50,6 +50,72 @@ export default class Dispatcher {
   }
 
   /**
+   * Register events to an already bound callback
+   *
+   * @param  {Integer} dispatchToken
+   * @param  {Array} events
+   * @return {void}
+   */
+  registerEvents(dispatchToken, events) {
+    if (! this._callbacks[dispatchToken]) {
+      throw new Error('Fluxapp: Unable to register event for invalid dispatch token');
+    }
+
+    events = _.castArray(events);
+
+    _.each(events, (event) => {
+      event = event === '*' ? event : namespaceTransform(event);
+      this._events[event] = this._events[event] || [];
+
+      if (! _.includes(this._events[event], dispatchToken)) {
+        this._events[event].push(dispatchToken);
+      }
+    });
+  }
+
+  /**
+   * Register event to an already bound callback
+   *
+   * @param  {Integer} dispatchToken
+   * @param  {Array} events
+   * @return {void}
+   */
+  registerEvent(dispatchToken, event) {
+    return this.registerEvents(dispatchToken, event);
+  }
+
+  /**
+   * Unregister events from an already bound callback
+   *
+   * @param  {Integer} dispatchToken
+   * @param  {Array} events
+   * @return {void}
+   */
+  unregisterEvents(dispatchToken, events) {
+    if (! this._callbacks[dispatchToken]) {
+      throw new Error('Fluxapp: Unable to unregister event for invalid dispatch token');
+    }
+
+    events = _.castArray(events);
+
+    _.each(events, (event) => {
+      event = event === '*' ? event : namespaceTransform(event);
+      this._events[event] = _.without(this._events[event] || [], dispatchToken);
+    });
+  }
+
+  /**
+   * Unregister event from an already bound callback
+   *
+   * @param  {Integer} dispatchToken
+   * @param  {Array} events
+   * @return {void}
+   */
+  unregisterEvent(dispatchToken, event) {
+    return this.unregisterEvents(dispatchToken, event);
+  }
+
+  /**
    * Unregisters a callback with the dispatcher
    *
    * @param  {String} id [description]
